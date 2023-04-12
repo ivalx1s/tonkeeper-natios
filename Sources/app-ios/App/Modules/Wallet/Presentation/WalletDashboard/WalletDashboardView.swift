@@ -55,12 +55,19 @@ struct WalletDashboardView: View {
 			)
 			.overlay(navBarButtons, alignment: .center)
 		}
-		.background(headerBg)
+		.background(navbarMaterial)
 	}
 	
 	@ViewBuilder
-	private var headerBg: some View {
-		SystemMaterial(.systemThinMaterialDark).ignoresSafeArea()
+	private var navbarMaterial: some View {
+		ZStack {
+			Color.tonSystemBackground
+			VStack(spacing: 0) {
+				Spacer()
+				Divider()
+					.opacity(0.8)
+			}
+		}
 			.opacity(ls.navBarBgOpacity)
 			.animation(.linear(duration: 0.15), value: ls.navBarBgOpacity)
 	}
