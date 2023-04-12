@@ -2,7 +2,7 @@ import TonkUI
 
 
 struct WalletDashboardView: View {
-	
+	@Binding private var isActiveInParentContainer: Bool
 	@ObservedObject private var namespaceState: AnimationNamespaceState
 	@ObservedObject private var walletDashboardViewState: WalletDashboardViewState
 	@StateObject private var ls: LocalState
@@ -11,12 +11,13 @@ struct WalletDashboardView: View {
 	let props: Props
 	let actions: Actions
 	
-	init(props: Props, actions: Actions, states: States) {
+	init(isActiveInParentContainer: Binding<Bool>, props: Props, actions: Actions, states: States) {
 		self.props = props
 		self.actions = actions
 		self.namespaceState = states.namespaceState
 		self.walletDashboardViewState = states.dashboardState
 		self._ls = StateObject(wrappedValue: LocalState())
+		self._isActiveInParentContainer = isActiveInParentContainer
 	}
 	
 	
@@ -30,14 +31,46 @@ struct WalletDashboardView: View {
 	@ViewBuilder
 	private func Content() -> some View {
 		ScrollView {
-			VStack(spacing: 0) {
-				Text("hello")
+			Color.clear
+				.frame(height: 200)
+				.storingContentFrame
+				.storingSize(in: $ls.contentRect, space: .named(ls.contentNameSpace))
+			HPageView(alignment: .center, pageWidth: bounds.width) {
+				ForEach(1..<3) { idx in
+					DashboardPage(idx: idx)
+				}
 			}
-			.padding()
-			.storingContentFrame
-			.storingSize(in: $ls.contentRect, space: .named(ls.contentNameSpace))
+			.frame(height: 2000)
+			.border(.white)
+			Color.red
+				.opacity(0.8)
 		}
 		.coordinateSpace(name: ls.contentNameSpace)
+	}
+	
+	@ViewBuilder
+	private func DashboardPage(idx: Int) -> some View {
+		switch idx {
+			case 1:
+				DashboardPage1()
+			case 2:
+				DashboardPage2()
+			default:
+				EmptyView()
+		}
+	}
+	
+	@ViewBuilder
+	private func DashboardPage1() -> some View {
+		Color.blueTon
+			.opacity(0.4)
+			.frame(height: 400)
+	}
+	@ViewBuilder
+	private func DashboardPage2() -> some View {
+		Color.blueTon
+			.opacity(0.4)
+			.frame(height: 200)
 	}
 	
 	@ViewBuilder
@@ -51,7 +84,7 @@ struct WalletDashboardView: View {
 			.transition(
 				.move(edge: .top).combined(with: .opacity),
 				withAnimation: .easeInOut,
-				isPresentInParentContainer:  props.$isActiveInParentContainer
+				isPresentInParentContainer:  $isActiveInParentContainer
 			)
 			.overlay(navBarButtons, alignment: .center)
 		}
@@ -61,7 +94,9 @@ struct WalletDashboardView: View {
 	@ViewBuilder
 	private var navbarMaterial: some View {
 		ZStack {
-			Color.tonSystemBackground
+			Color
+				.tonSystemBackground
+				.ignoresSafeArea()
 			VStack(spacing: 0) {
 				Spacer()
 				Divider()
@@ -69,7 +104,7 @@ struct WalletDashboardView: View {
 			}
 		}
 			.opacity(ls.navBarBgOpacity)
-			.animation(.linear(duration: 0.15), value: ls.navBarBgOpacity)
+			//.animation(.linear(duration: 0.15), value: ls.navBarBgOpacity)
 	}
 	
 	@ViewBuilder

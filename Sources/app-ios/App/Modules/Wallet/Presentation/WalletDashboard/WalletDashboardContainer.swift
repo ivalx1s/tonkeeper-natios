@@ -4,18 +4,17 @@ import SwiftUI
 extension WalletDashboardContainer {
 	struct Props: DynamicProperty {
 		@Binding var isPresentInRootContainer: Bool
-		let subpage: MainPage.Wallet
 		@Binding var walletDashboardPageIsActiveInParentContainer: Bool
 		@Binding var walletScannerPageIsActiveIsPresentInParentContainer: Bool
-		@Binding var exerciseExercisePageInternalIsPresentInParentContainer: Bool
-		@Binding var exerciseCooldownPageInternalIsPresentInParentContainer: Bool
+		let subpage: MainPage.Wallet
 	}
 }
 
 struct WalletDashboardContainer: View {
 	
-	@Binding var isActiveInParentContainer: Bool
-	let subpage: MainPage.Wallet
+	@Binding var isPresentInRootContainer: Bool
+	let props: Props
+	
 	@Environment(\.bounds) private var bounds
 	
 	@EnvironmentObject private var navState: NavigationViewState
@@ -30,8 +29,9 @@ struct WalletDashboardContainer: View {
 	@ViewBuilder
 	private func Content() -> some View {
 		WalletDashboardView(
+			isActiveInParentContainer: $isPresentInRootContainer,
 			props: .init(
-				isActiveInParentContainer: $isActiveInParentContainer
+				isActiveInParentContainer: $isPresentInRootContainer
 			),
 			actions: .init(
 			

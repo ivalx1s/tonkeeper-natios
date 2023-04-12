@@ -43,22 +43,24 @@ struct AppRootContainer: View {
 	
 	@ViewBuilder
 	private func TabsContent() -> some View {
-		if let currentPage {
-			switch currentPage {
-				case .undefined:
-					Text("")
-						.extendingContent()
-						.transition(.scale(scale: 1))
-					
-				case let .wallet(subpage):
-					WalletDashboard(subpage)
-						.transition(.scale(scale: 1))
-					
-				case  .settings:
-					Settings()
-						.transition(.scale(scale: 1))
-					
-			}
+		switch currentPage {
+			case .none:
+				Text("")
+					.extendingContent()
+					.transition(.scale(scale: 1))
+			case .undefined:
+				Text("")
+					.extendingContent()
+					.transition(.scale(scale: 1))
+				
+			case let .wallet(subpage):
+				WalletDashboard(subpage)
+					.transition(.scale(scale: 1))
+				
+			case  .settings:
+				Settings()
+					.transition(.scale(scale: 1))
+				
 		}
 	}
 	
@@ -96,9 +98,17 @@ struct AppRootContainer: View {
  */
 	}
 	
+	@ViewBuilder
 	private func WalletDashboard(_ subpage: MainPage.Wallet) -> some View {
-		WalletDashboardContainer(isActiveInParentContainer: $walletDashboardPageIsActive, subpage: subpage)
-			.transition(.scale(scale: 1))
+		WalletDashboardContainer(
+			isPresentInRootContainer: $walletPageIsPresentInRootContainer,
+			props: .init(
+				isPresentInRootContainer: $walletPageIsPresentInRootContainer,
+				walletDashboardPageIsActiveInParentContainer: $walletDashboardPageIsActive,
+				walletScannerPageIsActiveIsPresentInParentContainer: $walletScannerPageIsActive,
+				subpage: subpage
+			)
+		)
 	}
 	
 	private func internalSetPage(_ page: MainPage?) {
@@ -132,15 +142,16 @@ struct AppRootContainer: View {
 					}
 				case .settings:
 					self.walletPageIsPresentInRootContainer = false
-					self.settingsPageIsPresentInRootContainer = false
+					self.settingsPageIsPresentInRootContainer = true
 					
-					self.walletScannerPageIsActive = false
 					self.walletDashboardPageIsActive = false
+					self.walletScannerPageIsActive = false
 			}
 		}
 	}
 	
 	
+	@ViewBuilder
 	private func Settings() -> some View {
 		Text("Settings")
 			.extendingContent()
