@@ -1,0 +1,10 @@
+
+struct AppSettings: Codable {
+
+	
+    init(
+		
+    ) {
+		
+    }
+}

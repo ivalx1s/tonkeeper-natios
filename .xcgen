@@ -1,0 +1,4 @@
+#!/bin/zsh
+
+xcodegen generate --spec TonkeeperNatios.xcodeprojless
+open TonkeeperNatios.xcodeproj
