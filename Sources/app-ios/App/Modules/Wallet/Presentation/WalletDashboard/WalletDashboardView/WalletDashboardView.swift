@@ -25,7 +25,9 @@ struct WalletDashboardView: View {
 	
 	var body: some View {
 		Content()
-			.navBar(middle: topContent)
+			.safeAreaInset(edge: .top, spacing: 0) {
+				topContent
+			}
 	}
 	
 	@State private var activePageIdx: Int?
@@ -33,23 +35,26 @@ struct WalletDashboardView: View {
 	
 	@ViewBuilder
 	private func Content() -> some View {
-		ScrollView {
-			Color.clear
-				.frame(height: 200)
-				.storingContentFrame
-				.storingSize(in: $ls.contentRect, space: .named(ls.contentNameSpace))
-			
-			PageTabControl()
-			HPageView(alignment: .center, pageWidth: bounds.width, activePageIndex: $activePageIdx) {
-				ForEach(0..<2) { idx in
-					Color.white.opacity(0.001)
-						.overlay(alignment: .top) {
-							DashboardPage(idx: idx)
-						}
+		ScrollView([.vertical], showsIndicators: false) {
+			VStack(spacing: 0) {
+				Color.clear
+					.frame(height: 10)
+					.storingSize(in: $ls.contentRect, space: .named(ls.contentNameSpace))
+				PageTabControl()
+					.opacity(ls.pageTabControlSticked ? 0 : 1)
+					.disabled(ls.pageTabControlSticked)
+					.storingSize(in: $ls.pageTabControl, space: .named(ls.contentNameSpace), logToConsole: true)
+				HPageView(alignment: .center, pageWidth: bounds.width, activePageIndex: $activePageIdx) {
+					ForEach(0..<2) { idx in
+						Color.white.opacity(0.001)
+							.overlay(alignment: .top) {
+								DashboardPage(idx: idx)
+							}
+					}
 				}
+				.frame(height: pageHeight)
+				
 			}
-			.frame(height: pageHeight)
-			.border(.white)
 			Color.red
 				.opacity(0.8)
 		}
@@ -85,6 +90,7 @@ struct WalletDashboardView: View {
 					.font(.montserrat(.title3))
 			}
 		}
+		.extendingContent(.horizontal)
 	}
 	
 	@ViewBuilder
@@ -125,9 +131,15 @@ struct WalletDashboardView: View {
 				withAnimation: .easeInOut,
 				isPresentInParentContainer:  $isActiveInParentContainer
 			)
+			.offset(ls.navbarTitleYOffset)
+			.overlay(alignment: .bottom) {
+				PageTabControlInNavbar()
+					.offset(ls.pageTabControlYOffset)
+			}
 			.overlay(navBarButtons, alignment: .center)
 		}
 		.background(navbarMaterial)
+//		.border(.yellow)
 	}
 	
 	@ViewBuilder
@@ -158,10 +170,20 @@ struct WalletDashboardView: View {
 		Text("Wallet")
 			.font(.montserrat(.title2))
 			.fontWeight(.bold)
+			.extendingContent(.horizontal)
 		     // due to a bug in swiftui,
 		     // without explicit frame text breaks
 		     // y-origin of a scroll view inner coordinate space
 			.frame(height: ls.navbarHeight)
+//			.border(Color.white, width: 1/3)
+	}
+	
+	@ViewBuilder
+	private func PageTabControlInNavbar() -> some View {
+		PageTabControl()
+			.offset(y: ls.pageTabControl.height)
+			.opacity(ls.pageTabControlSticked ? 1 : 0)
+			.disabled(!ls.pageTabControlSticked)
 	}
 
 	
@@ -180,32 +202,5 @@ extension WalletDashboardView {
 	struct States: DynamicProperty {
 		let namespaceState: AnimationNamespaceState
 		let dashboardState: WalletDashboardViewState
-	}
-}
-
-
-extension WalletDashboardView {
-	class LocalState: ObservableObject {
-		let contentNameSpace = "walletDashboard"
-		@Published var navBarBgOpacity: CGFloat = 0
-		@Published var contentRect: CGRect = .zero
-		@Published var navbarHeight: CGFloat = 64
-		
-		init() {
-			bindFields()
-		}
-		
-		private func bindFields() {
-			$contentRect
-				.map {
-					switch $0.origin.y {
-						case ..<0: return 1
-						case 0...: return 0
-						default: return 0
-					}
-				}
-				.removeDuplicates()
-				.assign(to: &$navBarBgOpacity)
-		}
 	}
 }
