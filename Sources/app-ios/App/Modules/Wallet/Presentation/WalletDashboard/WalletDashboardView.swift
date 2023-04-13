@@ -39,12 +39,7 @@ struct WalletDashboardView: View {
 				.storingContentFrame
 				.storingSize(in: $ls.contentRect, space: .named(ls.contentNameSpace))
 			
-			HStack {
-				Text("Tokens")
-					.font(.montserrat(.title3))
-				Text("Collectibles")
-					.font(.montserrat(.title3))
-			}
+			PageTabControl()
 			HPageView(alignment: .center, pageWidth: bounds.width, activePageIndex: $activePageIdx) {
 				ForEach(0..<2) { idx in
 					Color.white.opacity(0.001)
@@ -70,6 +65,24 @@ struct WalletDashboardView: View {
 					break
 				default:
 					break
+			}
+		}
+	}
+	
+	@ViewBuilder
+	private func PageTabControl() -> some View {
+		HStack {
+			Button(action: {
+				activePageIdx = 0
+			}) {
+				Text("Tokens")
+					.font(.montserrat(.title3))
+			}
+			Button(action: {
+				activePageIdx = 1
+			}) {
+				Text("Collectibles")
+					.font(.montserrat(.title3))
 			}
 		}
 	}
