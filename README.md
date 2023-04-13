@@ -1,6 +1,14 @@
 # Tonkeeper Natios - Native iOS Wallet for TON Blockchain Network
 
----
+*Natios (noun):*
+
+*/ˈnɑ.ti.oʊz/*
+
+- *A native implementation of an app, particularly for iOS devices, characterized by its lack of wrapping or coating, thereby offering a simple, streamlined user experience.*
+- *A term inspired by the simplicity and deliciousness of Mexican nachos, used to describe the unwrapped and efficient design of an app on iOS devices, emphasizing its direct and unencumbered functionality.*
+
+*Example: The Tonkeeper Natios wallet offers a natios experience for its users, making it easy to manage TON coins on iOS devices with its streamlined design.*
+
 
 ## 🚧 WIP
 
@@ -36,6 +44,7 @@ Tonkeeper Natios is an open-source, native iOS wallet for the TON blockchain net
 - darwin-filemanager: helper wrapper for the Foundation's FileManager.
 - hapticshelper-ios: tiny wrapper to work with predefined haptics.
 
+Refer to DEPENDENCIES.md for a detailed overview and rationaly.
 ### 🛠️ Project Setup
 
 The Xcodeproj file is not stored in the repository. For project file generation, we rely on Xcodegen.
@@ -43,6 +52,8 @@ The Xcodeproj file is not stored in the repository. For project file generation,
 ### 🏛️ Architecture
 
 Tonkeeper Natios follows a Redux-like architecture with a unidirectional data flow. View definitions are separated into Views and View Containers. Views only get the data they need through arguments, while Containers may define callbacks, be injected with observable objects, etc.
+
+Refer to ARCHITECTURE.md for detailed explanation of project architecture.
 
 ## 🌍 Contributing
 
