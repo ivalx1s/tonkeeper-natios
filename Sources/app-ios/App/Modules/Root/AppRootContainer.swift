@@ -67,6 +67,7 @@ struct AppRootContainer: View {
 	@State private var tabbarSize: CGRect = .zero
 	
 	
+	#warning("implement using native TabView")
 	@ViewBuilder
 	private var tabBar: some View {
 		if let mainPage = navState.mainPage {
