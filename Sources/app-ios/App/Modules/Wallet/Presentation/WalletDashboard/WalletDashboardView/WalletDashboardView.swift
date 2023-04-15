@@ -40,7 +40,7 @@ struct WalletDashboardView: View {
 				Color.clear
 					.frame(height: 10)
 					.storingSize(in: $ls.contentRect, space: .named(ls.contentNameSpace))
-				PageTabControl(walletDashboardViewState.tokenLayout)
+				PageTabControl(walletDashboardViewState.tokenLayout, idx: $activePageIdx)
 					.opacity(ls.pageTabControlSticked ? 0 : 1)
 					.disabled(ls.pageTabControlSticked)
 					.storingSize(in: $ls.pageTabControl, space: .named(ls.contentNameSpace), logToConsole: false)
@@ -76,48 +76,43 @@ struct WalletDashboardView: View {
 	}
 	
 	@ViewBuilder
-	private func PageTabControl(_ tokenLayout: WalletDashboardView.TokenLayout) -> some View {
-		HStack {
+	private func PageTabControl(_ tokenLayout: WalletDashboardView.TokenLayout, idx: Binding<Int?>) -> some View {
+		ScrollView(.horizontal, showsIndicators: false) {
 			switch tokenLayout {
-				case .aggregated:
-					EmptyView()
-				case .discrete:
-					
-					Button(action: {
-						activePageIdx = 0
-					}) {
-						Text("Tokens")
-							.font(.montserrat(.title3))
-					}
-					Button(action: {
-						activePageIdx = 1
-					}) {
-						Text("Apps")
-							.font(.montserrat(.title3))
-					}
-					Button(action: {
-						activePageIdx = 2
-					}) {
-						Text("Collectibles")
-							.font(.montserrat(.title3))
-					}
-					
-				case .hybrid:
-					Button(action: {
-						activePageIdx = 0
-					}) {
-						Text("Tokens")
-							.font(.montserrat(.title3))
-					}
-					Button(action: {
-						activePageIdx = 1
-					}) {
-						Text("Collectibles")
-							.font(.montserrat(.title3))
-					}
+				case let ._aggregated(assets):
+					PageTabSelector(assets, idx: idx)
+				case let ._discrete(assets):
+					PageTabSelector(assets, idx: idx)
+				case let ._hybrid(assets):
+					PageTabSelector(assets, idx: idx)
 			}
 		}
+		.safeAreaInset(edge: .leading) {
+			Color.clear
+				.frame(width: 8, height: 0)
+		}
+		.safeAreaInset(edge: .trailing) {
+			Color.clear
+				.frame(width: 8, height: 0)
+		}
+		.padding(.vertical)
 		.extendingContent(.horizontal)
+	}
+	
+	@ViewBuilder
+	private func PageTabSelector(_ types: Array<WalletDashboardView.AggregatedAssetType>, idx: Binding<Int?>) -> some View {
+		HStack {
+			ForEach(types.numbered(startingAt: 0)) { numberedAsset in
+				ForEach(numberedAsset.element.wrappedValue) { value in
+					Button(action: { idx.wrappedValue = numberedAsset.number }) {
+//						Text("\(numberedAsset.number)") // displays the idx, may be useful for future development
+						Text(value.rawValue)
+							.font(.montserrat(.title3))
+					}
+				}
+				
+			}
+		}
 	}
 	
 	@ViewBuilder
@@ -207,7 +202,7 @@ struct WalletDashboardView: View {
 	@ViewBuilder
 	private func PageTabControlInNavbar() -> some View {
 		if walletDashboardViewState.tokenLayout != .aggregated {
-			PageTabControl(walletDashboardViewState.tokenLayout)
+			PageTabControl(walletDashboardViewState.tokenLayout, idx: $activePageIdx)
 				.offset(y: ls.pageTabControl.height)
 				.opacity(ls.pageTabControlSticked ? 1 : 0)
 				.disabled(!ls.pageTabControlSticked)

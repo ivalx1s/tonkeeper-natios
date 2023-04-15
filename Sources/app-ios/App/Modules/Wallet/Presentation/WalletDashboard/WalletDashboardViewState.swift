@@ -10,12 +10,11 @@ final class WalletDashboardViewState: PerduxViewState {
 	
 	@Published private(set) var tokenLayout: WalletDashboardView.TokenLayout = .aggregated
 	
-	
 	init(walletState: WalletState) {
 		initPipelines(walletState: walletState)
 	}
 	
-	private func initPipelines(walletState: WalletState)  {
+	private func initPipelines(walletState: WalletState) {
 		walletState.walletAssets
 			.receive(on: DispatchQueue.main)
 			.sink { [weak self] assets in
@@ -30,7 +29,11 @@ final class WalletDashboardViewState: PerduxViewState {
 			.map { ft, nft,  nlt in
 				if (ft.count + (nft.count * 2) + nlt.count) >= 10 {
 					if ft.count + nlt.count >= 10 {
-						return .discrete
+						if nlt.count > 0 {
+							return .discrete
+						} else {
+							return .hybrid
+						}
 					} else {
 						return .hybrid
 					}
@@ -50,10 +53,91 @@ final class WalletDashboardViewState: PerduxViewState {
 }
 
 extension WalletDashboardView {
-	enum TokenLayout {
-		case aggregated
-		case hybrid
-		case discrete
+	enum TokenLayout: Equatable {
+		case _aggregated(Array<AggregatedAssetType>)
+		case _hybrid(Array<AggregatedAssetType>)
+		case _discrete(Array<AggregatedAssetType>)
+		
+		static var aggregated: Self {
+			._aggregated(
+				[
+					.fungibleAggregation(
+						[
+							.fungibleToken,
+							//.nonLiquidAsset
+						]
+					),
+					.nonFungibleAggregation(
+						[
+							.nonFungibleToken
+						]
+					)
+				]
+			)
+		}
+		
+		static var hybrid: Self {
+			._hybrid(
+				[
+					.fungibleAggregation(
+						[
+							.fungibleToken,
+							//.nonLiquidAsset
+						]),
+					.nonFungibleAggregation(
+						[
+							.nonFungibleToken
+						]
+					)
+				]
+			)
+		}
+		
+		static var discrete: Self {
+			._discrete(
+				[
+					.fungibleAggregation([.fungibleToken]),
+					.nonFungibleAggregation([.nonFungibleToken]),
+					.fungibleAggregation([.nonLiquidAsset]),
+				]
+			)
+		}
+	}
+	
+	enum AggregatedAssetType: Equatable, Hashable, Comparable, Identifiable {
+		case fungibleAggregation(Array<WalletAssetType>)
+		case nonFungibleAggregation(Array<WalletAssetType>)
+		
+		var id: String {
+			switch self {
+				case let .nonFungibleAggregation(assetTypes):
+					return assetTypes.description
+				case let .fungibleAggregation(assetTypes):
+					return assetTypes.description
+			}
+		}
+		
+		static func < (lhs: AggregatedAssetType, rhs: AggregatedAssetType) -> Bool {
+			switch (lhs, rhs) {
+				case let (.fungibleAggregation(lhsArray), .fungibleAggregation(rhsArray)),
+					let (.nonFungibleAggregation(lhsArray), .nonFungibleAggregation(rhsArray)):
+					return lhsArray.lexicographicallyPrecedes(rhsArray)
+				case (.fungibleAggregation, .nonFungibleAggregation):
+					return true
+				default:
+					return false
+			}
+		}
+		
+		var wrappedValue: [WalletAssetType] {
+			switch self {
+				case let .nonFungibleAggregation(assetTypes):
+					return assetTypes
+				case let .fungibleAggregation(assetTypes):
+					return assetTypes
+			}
+		}
+		
 	}
 }
 
