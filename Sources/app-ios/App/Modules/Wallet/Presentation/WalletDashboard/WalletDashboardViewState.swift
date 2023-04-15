@@ -28,15 +28,58 @@ final class WalletDashboardViewState: PerduxViewState {
 		Publishers.Zip3($fungibleTokens, $nonFungibleTokens, $nonLiquidAssets)
 			.map { ft, nft,  nlt in
 				if (ft.count + (nft.count * 2) + nlt.count) >= 10 {
-					if ft.count + nlt.count >= 10 {
-						if nlt.count > 0 {
-							return .discrete
-						} else {
-							return .hybrid
-						}
-					} else {
-						return .hybrid
+					// edge case when wallet contains only nfts
+					if nft.count > 0, ft.count == 0, nlt.count == 0 {
+						return .aggregated
 					}
+					
+					// edge case when wallet contains only non liquid assets
+					if nft.count == 0, ft.count == 0, nlt.count > 0 {
+						return .aggregated
+					}
+					
+					// edge case when wallet contains only token assets
+					if nft.count == 0, ft.count > 0, nlt.count == 0 {
+						return .aggregated
+					}
+					
+					// edge case when wallet contains only nfts and non-liquid assets less than 10 by wight
+					if ft.count == 0, (((nft.count * 2) + nlt.count) <= 10) {
+						return .aggregated
+					}
+					
+					// edge case when wallet contains only nfts and non-liquid assets more than 10 by wight
+					if ft.count == 0, (((nft.count * 2) + nlt.count) > 10) {
+						return .hybridNftNlt
+					}
+					
+					// edge case when wallet contains only nfts and tokens 10 or less by wight
+					if nlt.count == 0, ((ft.count + (nft.count*2)) <= 10) {
+						return .aggregated
+					}
+					
+					// edge case when wallet contains only nfts and tokens 10 or more by wight
+					if nlt.count == 0, ((ft.count + (nft.count*2)) > 10) {
+						return .hybridTokenNft
+					}
+					
+					// edge case when wallet contains only tokens and non-liquid assets 10 or less by wight
+					if nft.count == 0, ((ft.count + nlt.count) <= 10) {
+						return .aggregated
+					}
+					
+					// edge case when wallet contains only tokens and non-liquid assets 10 or more by wight
+					if nft.count == 0, ((ft.count + nlt.count) > 10) {
+						return .hybridTokenNla
+					}
+					
+					// edge case when wallet contains tokens and non-liquid assets 10 or less by wight
+					// and also contains nfts
+					if nft.count > 0, ((ft.count + nlt.count) < 10) {
+						return .hybridTokenNft
+					}
+				
+					return .discrete
 				}
 				return .aggregated
 			}
@@ -53,10 +96,21 @@ final class WalletDashboardViewState: PerduxViewState {
 }
 
 extension WalletDashboardView {
-	enum TokenLayout: Equatable {
+	enum TokenLayout: Equatable, Hashable {
 		case _aggregated(Array<AggregatedAssetType>)
 		case _hybrid(Array<AggregatedAssetType>)
 		case _discrete(Array<AggregatedAssetType>)
+		
+		var asPages: Array<AggregatedAssetType> {
+			switch self {
+				case let ._aggregated(aggregatedAssetTypes):
+					return aggregatedAssetTypes
+				case let ._hybrid(aggregatedAssetTypes):
+					return aggregatedAssetTypes
+				case let ._discrete(aggregatedAssetTypes):
+					return aggregatedAssetTypes
+			}
+		}
 		
 		static var aggregated: Self {
 			._aggregated(
@@ -76,13 +130,46 @@ extension WalletDashboardView {
 			)
 		}
 		
-		static var hybrid: Self {
+		
+		static var hybridTokenNla: Self {
+			._hybrid(
+				[
+					.fungibleAggregation(
+						[
+							.fungibleToken,
+						]),
+					.fungibleAggregation(
+						[
+							.nonLiquidAsset
+						]),
+				]
+			)
+		}
+		
+		static var hybridTokenNft: Self {
 			._hybrid(
 				[
 					.fungibleAggregation(
 						[
 							.fungibleToken,
 							//.nonLiquidAsset
+						]),
+					.nonFungibleAggregation(
+						[
+							.nonFungibleToken
+						]
+					)
+				]
+			)
+		}
+		
+		static var hybridNftNlt: Self {
+			._hybrid(
+				[
+					.fungibleAggregation(
+						[
+							//.fungibleToken,
+							.nonLiquidAsset
 						]),
 					.nonFungibleAggregation(
 						[
