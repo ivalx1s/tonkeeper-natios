@@ -57,19 +57,10 @@ struct WalletDashboardView: View {
 				Color.clear
 					.frame(height: 10)
 					.storingSize(in: $ls.contentRect, space: .named(ls.contentNameSpace))
-				if !ls.pageTabControlSticked {
-					PageTabControl(walletDashboardViewState.tokenLayout, idx: $activePageIdx)
-						.matchedGeometryEffect(id: "PageTabControl", in: pageControl)
-						.opacity(ls.pageTabControlSticked ? 0 : 1)
-						.disabled(ls.pageTabControlSticked)
-						.storingSize(in: $ls.pageTabControl, space: .named(ls.contentNameSpace), logToConsole: false)
-				} else {
-					// layout reservation
-					PageTabControl(walletDashboardViewState.tokenLayout, idx: $activePageIdx)
-						.opacity(0)
-						.disabled(ls.pageTabControlSticked)
-						.storingSize(in: $ls.pageTabControl, space: .named(ls.contentNameSpace), logToConsole: false)
-				}
+				PageTabControl(walletDashboardViewState.tokenLayout, idx: $activePageIdx)
+					.opacity(ls.pageTabControlSticked ? 0 : 1)
+					.disabled(ls.pageTabControlSticked)
+					.storingSize(in: $ls.pageTabControl, space: .named(ls.contentNameSpace), logToConsole: false)
 				HPageView(alignment: .center, pageWidth: bounds.width, activePageIndex: $activePageIdx) {
 					ForEach(walletDashboardViewState.tokenLayout.asPages.numbered(startingAt: 0)) { tuple in
 						Color.white.opacity(0.001)
@@ -264,19 +255,10 @@ struct WalletDashboardView: View {
 	private func PageTabControlInNavbar() -> some View {
 		VStack(spacing: 0) {
 			if walletDashboardViewState.tokenLayout != .aggregated {
-				if ls.pageTabControlSticked {
-					PageTabControl(walletDashboardViewState.tokenLayout, idx: $activePageIdx)
-						//.matchedGeometryEffect(id: "PageTabControl", in: pageControl)
-						.offset(y: ls.pageTabControl.height)
-						.opacity(ls.pageTabControlSticked ? 1 : 0)
-						.disabled(!ls.pageTabControlSticked)
-				} else {
-					// layout reservation
-					PageTabControl(walletDashboardViewState.tokenLayout, idx: $activePageIdx)
-						.offset(y: ls.pageTabControl.height)
-						.opacity(0)
-						.disabled(!ls.pageTabControlSticked)
-				}
+				PageTabControl(walletDashboardViewState.tokenLayout, idx: $activePageIdx)
+					.offset(y: ls.pageTabControl.height)
+					.opacity(ls.pageTabControlSticked ? 1 : 0)
+					.disabled(!ls.pageTabControlSticked)
 			}
 		}
 	}
