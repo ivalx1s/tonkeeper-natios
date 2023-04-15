@@ -79,12 +79,12 @@ struct WalletDashboardView: View {
 	private func PageTabControl(_ tokenLayout: WalletDashboardView.TokenLayout, idx: Binding<Int?>) -> some View {
 		ScrollView(.horizontal, showsIndicators: false) {
 			switch tokenLayout {
-				case let ._aggregated(assets):
-					PageTabSelector(assets, idx: idx)
-				case let ._discrete(assets):
-					PageTabSelector(assets, idx: idx)
-				case let ._hybrid(assets):
-					PageTabSelector(assets, idx: idx)
+				case let ._aggregated(assetTypes):
+					PageTabSelector(assetTypes, idx: idx)
+				case let ._discrete(assetTypes):
+					PageTabSelector(assetTypes, idx: idx)
+				case let ._hybrid(assetTypes):
+					PageTabSelector(assetTypes, idx: idx)
 			}
 		}
 		.safeAreaInset(edge: .leading) {
@@ -100,13 +100,12 @@ struct WalletDashboardView: View {
 	}
 	
 	@ViewBuilder
-	private func PageTabSelector(_ types: Array<WalletDashboardView.AggregatedAssetType>, idx: Binding<Int?>) -> some View {
+	private func PageTabSelector(_ assetTypes: Array<WalletDashboardView.AggregatedAssetType>, idx: Binding<Int?>) -> some View {
 		HStack {
-			ForEach(types.numbered(startingAt: 0)) { numberedAsset in
-				ForEach(numberedAsset.element.wrappedValue) { value in
-					Button(action: { idx.wrappedValue = numberedAsset.number }) {
-//						Text("\(numberedAsset.number)") // displays the idx, may be useful for future development
-						Text(value.rawValue)
+			ForEach(assetTypes.numbered(startingAt: 0)) { numberedAssetTypes in
+				ForEach(numberedAssetTypes.element.wrappedValue) { assetType in
+					Button(action: { idx.wrappedValue = numberedAssetTypes.number }) {
+						Text(LocalizedStringKey(assetType.rawValue))
 							.font(.montserrat(.title3))
 					}
 				}
