@@ -56,7 +56,7 @@ extension WalletDashboardView {
 				.map { rect in
 					let yOrigin = rect.origin.y
 					if yOrigin < 0 {
-						let max = max(yOrigin, -50)
+						let max = max(yOrigin, -64)
 						return .init(width: 0, height: max)
 					} else {
 						return .zero

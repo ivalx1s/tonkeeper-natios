@@ -7,6 +7,7 @@ struct WalletDashboardView: View {
 	@ObservedObject private var walletDashboardViewState: WalletDashboardViewState
 	@StateObject private var ls: LocalState
 	@Environment(\.bounds) private var bounds
+	@Namespace private var pageControl
 
 	let props: Props
 	let actions: Actions
@@ -21,12 +22,28 @@ struct WalletDashboardView: View {
 	}
 	
 	
+	@State private var longestTabSelectorTextWidth: CGFloat? = 100
+	@State private var tallestTabSelectorTextHeight: CGFloat?
 	
 	
 	var body: some View {
 		Content()
 			.safeAreaInset(edge: .top, spacing: 0) {
 				topContent
+			}
+			.onPreferenceChange(SizeKey.self, perform: { sizes in
+				guard sizes.count > 0 else {
+					return
+				}
+				self.longestTabSelectorTextWidth = sizes.map { $0.width }.max()
+				self.tallestTabSelectorTextHeight = sizes.map { $0.height }.max()
+			})
+			.onChange(of: activePageIdx) { idx in
+				guard let idx else { return }
+				// guard walletDashboardViewState.tokenLayout.asPages.count > 2 else { return }
+				withAnimation {
+					pageTabControlProxy?.moveTo(idx)
+				}
 			}
 	}
 	
@@ -40,16 +57,23 @@ struct WalletDashboardView: View {
 				Color.clear
 					.frame(height: 10)
 					.storingSize(in: $ls.contentRect, space: .named(ls.contentNameSpace))
-				PageTabControl(walletDashboardViewState.tokenLayout, idx: $activePageIdx)
-					.opacity(ls.pageTabControlSticked ? 0 : 1)
-					.disabled(ls.pageTabControlSticked)
-					.storingSize(in: $ls.pageTabControl, space: .named(ls.contentNameSpace), logToConsole: false)
+				if !ls.pageTabControlSticked {
+					PageTabControl(walletDashboardViewState.tokenLayout, idx: $activePageIdx)
+						.matchedGeometryEffect(id: "PageTabControl", in: pageControl)
+						.opacity(ls.pageTabControlSticked ? 0 : 1)
+						.disabled(ls.pageTabControlSticked)
+						.storingSize(in: $ls.pageTabControl, space: .named(ls.contentNameSpace), logToConsole: false)
+				} else {
+					// layout reservation
+					PageTabControl(walletDashboardViewState.tokenLayout, idx: $activePageIdx)
+						.opacity(0)
+						.disabled(ls.pageTabControlSticked)
+						.storingSize(in: $ls.pageTabControl, space: .named(ls.contentNameSpace), logToConsole: false)
+				}
 				HPageView(alignment: .center, pageWidth: bounds.width, activePageIndex: $activePageIdx) {
 					ForEach(walletDashboardViewState.tokenLayout.asPages.numbered(startingAt: 0)) { tuple in
 						Color.white.opacity(0.001)
 							.overlay(alignment: .top) {
-								EmptyView()
-								//Text(page.id)
 								DashboardPage(idx: tuple.number)
 							}
 					}
@@ -77,43 +101,73 @@ struct WalletDashboardView: View {
 		}
 	}
 	
+	
+	@State private var pageTabControlProxy: PageViewProxy?
+	@State private var activeTabIdx: Int?
 	@ViewBuilder
 	private func PageTabControl(_ tokenLayout: WalletDashboardView.TokenLayout, idx: Binding<Int?>) -> some View {
-		ScrollView(.horizontal, showsIndicators: false) {
-			switch tokenLayout {
-				case ._aggregated:
-					EmptyView()
-				case let ._discrete(assetTypes):
-					PageTabSelector(assetTypes, idx: idx)
-				case let ._hybrid(assetTypes):
-					PageTabSelector(assetTypes, idx: idx)
+		PageViewReader { proxy in
+			HPageView(alignment: .leading, pageWidth: longestTabSelectorTextWidth, spacing: 8, activePageIndex: $activeTabIdx) {
+				//ScrollView(.horizontal, showsIndicators: false) {
+				switch tokenLayout {
+					case ._aggregated:
+						EmptyView()
+					case let ._discrete(assetTypes):
+						PageTabSelector(assetTypes, idx: idx)
+					case let ._hybrid(assetTypes):
+						PageTabSelector(assetTypes, idx: idx)
+						
+				}
 			}
-		}
-		.safeAreaInset(edge: .leading) {
-			Color.clear
-				.frame(width: 8, height: 0)
-		}
-		.safeAreaInset(edge: .trailing) {
-			Color.clear
-				.frame(width: 8, height: 0)
-		}
-		.padding(.vertical)
-		.extendingContent(.horizontal)
+			.onAppear {
+				self.pageTabControlProxy = proxy
+			}
+			.offset(x: pageTabSelectorOffset)
+			.padding(.vertical)
+			.extendingContent(.horizontal)
+			.frame(height: 70)
+			.safeAreaInset(edge: .leading) {
+				Color.clear
+					.frame(
+						width: walletDashboardViewState.tokenLayout.asPages.count > 2
+						? 16
+						: 0,
+						height: 0
+					)
+			}
+	    }
 	}
 	
 	@ViewBuilder
 	private func PageTabSelector(_ assetTypes: Array<WalletDashboardView.AggregatedAssetType>, idx: Binding<Int?>) -> some View {
-		HStack {
-			ForEach(assetTypes.numbered(startingAt: 0)) { numberedAssetTypes in
-				ForEach(numberedAssetTypes.element.wrappedValue) { assetType in
-					Button(action: { idx.wrappedValue = numberedAssetTypes.number }) {
+		ForEach(assetTypes.numbered(startingAt: 0)) { numberedAssetTypes in
+			ForEach(numberedAssetTypes.element.wrappedValue) { assetType in
+				VStack(alignment: .center, spacing: 11) {
+					Button(action: {
+						idx.wrappedValue = numberedAssetTypes.number
+					}) {
 						Text(LocalizedStringKey(assetType.rawValue))
-							.font(.montserrat(.title3))
+						PageSelectionIndicator()
+							.opacity(idx.wrappedValue == numberedAssetTypes.number ? 1 : 0)
+							.animation(.easeInOut(duration: 0.3), value: idx.wrappedValue == numberedAssetTypes.number)
 					}
+					.buttonStyle(.pageSelector(isSelected: idx.wrappedValue == numberedAssetTypes.number))
 				}
-				
+				.overlay(
+					GeometryReader { proxy in
+						Color.clear.preference(key: SizeKey.self, value: [proxy.size])
+					}
+				)
 			}
+			
 		}
+	}
+	
+	@ViewBuilder
+	private func PageSelectionIndicator() -> some View {
+		RoundedRectangle(cornerRadius: 3, style: .continuous)
+			.frame(width: 24, height: 3)
+			.foregroundColor(.tonBlue)
 	}
 	
 	@ViewBuilder
@@ -169,7 +223,6 @@ struct WalletDashboardView: View {
 			.overlay(navBarButtons, alignment: .center)
 		}
 		.background(navbarMaterial)
-//		.border(.yellow)
 	}
 	
 	@ViewBuilder
@@ -209,11 +262,22 @@ struct WalletDashboardView: View {
 	
 	@ViewBuilder
 	private func PageTabControlInNavbar() -> some View {
-		if walletDashboardViewState.tokenLayout != .aggregated {
-			PageTabControl(walletDashboardViewState.tokenLayout, idx: $activePageIdx)
-				.offset(y: ls.pageTabControl.height)
-				.opacity(ls.pageTabControlSticked ? 1 : 0)
-				.disabled(!ls.pageTabControlSticked)
+		VStack(spacing: 0) {
+			if walletDashboardViewState.tokenLayout != .aggregated {
+				if ls.pageTabControlSticked {
+					PageTabControl(walletDashboardViewState.tokenLayout, idx: $activePageIdx)
+						//.matchedGeometryEffect(id: "PageTabControl", in: pageControl)
+						.offset(y: ls.pageTabControl.height)
+						.opacity(ls.pageTabControlSticked ? 1 : 0)
+						.disabled(!ls.pageTabControlSticked)
+				} else {
+					// layout reservation
+					PageTabControl(walletDashboardViewState.tokenLayout, idx: $activePageIdx)
+						.offset(y: ls.pageTabControl.height)
+						.opacity(0)
+						.disabled(!ls.pageTabControlSticked)
+				}
+			}
 		}
 	}
 
@@ -233,5 +297,43 @@ extension WalletDashboardView {
 	struct States: DynamicProperty {
 		let namespaceState: AnimationNamespaceState
 		let dashboardState: WalletDashboardViewState
+	}
+}
+
+extension WalletDashboardView {
+	private var pageTabSelectorOffset: CGFloat {
+		walletDashboardViewState.tokenLayout.asPages.count > 2
+		? 0
+		: (bounds.width/4)
+	}
+}
+
+
+struct PageSelectorButtonStyle: ButtonStyle {
+	let isSelected: Bool
+	func makeBody(configuration: Configuration) -> some View {
+		configuration.label
+			.fixedSize(horizontal: true, vertical: false)
+			.opacity(configuration.isPressed ? 0.8 : 1)
+			.scaleEffect(configuration.isPressed ? 0.97 : 1)
+			.foregroundColor(isSelected ? .tonPrimaryLabel : .tonSecondaryLabel)
+			.font(.montserrat(.headline))
+			.fontWeight(.semibold)
+			.contentShape(Rectangle())
+			.animation(.easeInOut(duration: 0.3), value: configuration.isPressed)
+	}
+}
+
+extension ButtonStyle where Self == PageSelectorButtonStyle {
+	static func pageSelector(isSelected: Bool) -> PageSelectorButtonStyle {
+		PageSelectorButtonStyle(isSelected: isSelected)
+	}
+}
+
+
+struct SizeKey: PreferenceKey {
+	static let defaultValue: [CGSize] = []
+	static func reduce(value: inout [CGSize], nextValue: () -> [CGSize]) {
+		value.append(contentsOf: nextValue())
 	}
 }
