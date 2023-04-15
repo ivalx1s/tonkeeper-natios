@@ -1,6 +1,6 @@
 
 fileprivate let walletAssets: [any WalletAsset] = [
-	BaseToken(id: .init(id: "1"), name: "Toncoin", balance: BaseUnit(amount: 1_000_000_000, symbol: "TON", decimals: 9)),
+	FungibleToken(id: .init(id: "1"), name: "Toncoin", balance: BaseUnit(amount: 1_000_000_000, symbol: "TON", decimals: 9)),
 	FungibleToken(id: AssetIdentifier(id: "1"), name: "DAI", balance: BaseUnit(amount: 100000, symbol: "DAI", decimals: 18)),
 	FungibleToken(id: AssetIdentifier(id: "2"), name: "USDC", balance: BaseUnit(amount: 50000, symbol: "USDC", decimals: 6)),
 	FungibleToken(id: AssetIdentifier(id: "3"), name: "USDT", balance: BaseUnit(amount: 2000000, symbol: "USDT", decimals: 6)),

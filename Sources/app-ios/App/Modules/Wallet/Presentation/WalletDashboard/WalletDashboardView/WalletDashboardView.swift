@@ -40,10 +40,10 @@ struct WalletDashboardView: View {
 				Color.clear
 					.frame(height: 10)
 					.storingSize(in: $ls.contentRect, space: .named(ls.contentNameSpace))
-				PageTabControl()
+				PageTabControl(walletDashboardViewState.tokenLayout)
 					.opacity(ls.pageTabControlSticked ? 0 : 1)
 					.disabled(ls.pageTabControlSticked)
-					.storingSize(in: $ls.pageTabControl, space: .named(ls.contentNameSpace), logToConsole: true)
+					.storingSize(in: $ls.pageTabControl, space: .named(ls.contentNameSpace), logToConsole: false)
 				HPageView(alignment: .center, pageWidth: bounds.width, activePageIndex: $activePageIdx) {
 					ForEach(0..<2) { idx in
 						Color.white.opacity(0.001)
@@ -53,7 +53,7 @@ struct WalletDashboardView: View {
 					}
 				}
 				.frame(height: pageHeight)
-				.offset(y: -1*ls.pageTabControl.height)
+				.offset(y: walletDashboardViewState.tokenLayout != .aggregated ? 0 : -1*ls.pageTabControl.height)
 				
 			}
 			Color.red
@@ -76,19 +76,45 @@ struct WalletDashboardView: View {
 	}
 	
 	@ViewBuilder
-	private func PageTabControl() -> some View {
+	private func PageTabControl(_ tokenLayout: WalletDashboardView.TokenLayout) -> some View {
 		HStack {
-			Button(action: {
-				activePageIdx = 0
-			}) {
-				Text("Tokens")
-					.font(.montserrat(.title3))
-			}
-			Button(action: {
-				activePageIdx = 1
-			}) {
-				Text("Collectibles")
-					.font(.montserrat(.title3))
+			switch tokenLayout {
+				case .aggregated:
+					EmptyView()
+				case .discrete:
+					
+					Button(action: {
+						activePageIdx = 0
+					}) {
+						Text("Tokens")
+							.font(.montserrat(.title3))
+					}
+					Button(action: {
+						activePageIdx = 1
+					}) {
+						Text("Apps")
+							.font(.montserrat(.title3))
+					}
+					Button(action: {
+						activePageIdx = 2
+					}) {
+						Text("Collectibles")
+							.font(.montserrat(.title3))
+					}
+					
+				case .hybrid:
+					Button(action: {
+						activePageIdx = 0
+					}) {
+						Text("Tokens")
+							.font(.montserrat(.title3))
+					}
+					Button(action: {
+						activePageIdx = 1
+					}) {
+						Text("Collectibles")
+							.font(.montserrat(.title3))
+					}
 			}
 		}
 		.extendingContent(.horizontal)
@@ -127,12 +153,12 @@ struct WalletDashboardView: View {
 				WalletDashboardTitle()
 				Spacer(minLength: 0)
 			}
-			.transition(
-				.move(edge: .top).combined(with: .opacity),
-				withAnimation: .easeInOut,
-				isPresentInParentContainer:  $isActiveInParentContainer
-			)
-			.offset(ls.navbarTitleYOffset)
+//			.transition(
+//				.move(edge: .top).combined(with: .opacity),
+//				withAnimation: .easeInOut,
+//				isPresentInParentContainer:  $isActiveInParentContainer
+//			)
+			.offset(walletDashboardViewState.tokenLayout != .aggregated ? ls.navbarTitleYOffset : .zero)
 			.overlay(alignment: .bottom) {
 				PageTabControlInNavbar()
 					.offset(ls.pageTabControlYOffset)
@@ -176,15 +202,16 @@ struct WalletDashboardView: View {
 		     // without explicit frame text breaks
 		     // y-origin of a scroll view inner coordinate space
 			.frame(height: ls.navbarHeight)
-//			.border(Color.white, width: 1/3)
 	}
 	
 	@ViewBuilder
 	private func PageTabControlInNavbar() -> some View {
-		PageTabControl()
-			.offset(y: ls.pageTabControl.height)
-			.opacity(ls.pageTabControlSticked ? 1 : 0)
-			.disabled(!ls.pageTabControlSticked)
+		if walletDashboardViewState.tokenLayout != .aggregated {
+			PageTabControl(walletDashboardViewState.tokenLayout)
+				.offset(y: ls.pageTabControl.height)
+				.opacity(ls.pageTabControlSticked ? 1 : 0)
+				.disabled(!ls.pageTabControlSticked)
+		}
 	}
 
 	

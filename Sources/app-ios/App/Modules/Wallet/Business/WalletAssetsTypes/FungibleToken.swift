@@ -1,6 +1,6 @@
-	protocol FungibleTokenRepresentable: WalletAsset {}
-	extension FungibleTokenRepresentable {
-		var assetType: WalletAssetType {
-			.fungibleToken
-		}
+protocol FungibleTokenRepresentable: WalletAsset {}
+extension FungibleTokenRepresentable {
+	var assetType: WalletAssetType {
+		.fungibleToken
 	}
+}

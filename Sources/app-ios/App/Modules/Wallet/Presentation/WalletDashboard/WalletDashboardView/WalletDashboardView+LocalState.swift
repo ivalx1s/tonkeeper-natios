@@ -37,7 +37,6 @@ extension WalletDashboardView {
 			$pageTabControl
 				.map { rect in
 					let yOrigin = rect.origin.y
-//					print("yOrigin: \(yOrigin); \(yOrigin <= 0)")
 					return yOrigin <= 0
 				}
 				.assign(to: &$pageTabControlSticked)
@@ -58,7 +57,6 @@ extension WalletDashboardView {
 					let yOrigin = rect.origin.y
 					if yOrigin < 0 {
 						let max = max(yOrigin, -50)
-						print("max: \(max)")
 						return .init(width: 0, height: max)
 					} else {
 						return .zero
