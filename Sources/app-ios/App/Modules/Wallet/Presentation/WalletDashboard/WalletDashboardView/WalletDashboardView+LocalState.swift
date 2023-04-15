@@ -3,14 +3,18 @@ import Combine
 extension WalletDashboardView {
 	class LocalState: ObservableObject {
 		let contentNameSpace = "walletDashboard"
+		
 		@Published var navBarBgOpacity: CGFloat = 0
 		@Published var contentRect: CGRect = .zero
 		
+		
 		@Published private(set) var navbarTitleYOffset: CGSize = .zero
 		@Published private(set) var pageTabControlYOffset: CGSize = .zero
+		@Published private(set) var pageViewOffset: CGFloat = 0
+		
+		
 		@Published var pageTabControlSticked: Bool = false
 		@Published var pageTabControl: CGRect = .zero
-		
 		
 		@Published var navbarHeight: CGFloat = 64
 		

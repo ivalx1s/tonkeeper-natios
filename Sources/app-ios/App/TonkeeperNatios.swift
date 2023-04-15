@@ -72,10 +72,12 @@ struct TonkeeperNatios: App {
 			sandboxPermissions: sandboxPermissionsManager
 		)
 		
-		
+		let walletState = WalletState()
+
         //business states
         appStore.connectState(state: navigationState)
         appStore.connectState(state: settingsState)
+		appStore.connectState(state: walletState)
 
         //view states
 		
@@ -87,7 +89,9 @@ struct TonkeeperNatios: App {
 			settingsState: settingsState
 		)
 		
-		let walletDashboardViewState = WalletDashboardViewState()
+		let walletDashboardViewState = WalletDashboardViewState(
+			walletState: walletState
+		)
 		
 		appStore.connectViewState(state: settingsViewState)
 		appStore.connectViewState(state: walletDashboardViewState)
@@ -100,6 +104,7 @@ struct TonkeeperNatios: App {
         rootSaga = .init()
         rootSaga.add(saga: F.get(type: ISettingsSaga.self)!)
 		rootSaga.add(saga: F.get(type: IAppSaga.self)!)
+		rootSaga.add(saga: F.get(type: IWalletSaga.self)!)
     }
 	
 	
@@ -113,6 +118,11 @@ struct TonkeeperNatios: App {
 		performAsync {
 			AppSideEffect.setupContext
 		}
+		
+		performAsync {
+			WalletSideEffect.loadWalletAssets
+		}
+		
     }
 	
 	

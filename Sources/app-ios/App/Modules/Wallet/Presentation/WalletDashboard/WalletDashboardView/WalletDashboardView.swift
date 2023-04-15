@@ -53,6 +53,7 @@ struct WalletDashboardView: View {
 					}
 				}
 				.frame(height: pageHeight)
+				.offset(y: -1*ls.pageTabControl.height)
 				
 			}
 			Color.red

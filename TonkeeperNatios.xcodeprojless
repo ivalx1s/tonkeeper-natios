@@ -23,6 +23,9 @@
     "local-ton-swift": {
             "path": "./Packages/ton-swift/"
         },
+        "local-darwin-restclient": {
+            "path": "./Packages/darwin-restclient/"
+        },
         "local-BigInt": {
             "path": "./Packages/BigInt/"
         },
@@ -132,6 +135,10 @@
         "remote-tweetnacl-swiftwrap": {
             "version": "1.0.0",
             "url": "git@github.com:bitmark-inc/tweetnacl-swiftwrap.git"
+        },
+        "remote-darwin-restclient": {
+            "version": "0.4.0",
+            "url": "git@github.com:ivalx1s/darwin-restclient.git"
         }
     },
   "schemes": {
@@ -240,6 +247,10 @@
       },
       "dependencies": [
         {
+                    "package": "remote-darwin-restclient",
+                    "product": "RestClient"
+                },
+                {
                     "package": "remote-ton-swift",
                     "product": "TonSwift"
                 },
@@ -304,7 +315,7 @@
         "base": {
           "ENABLE_BITCODE": "NO",
           "PRODUCT_NAME": "$(PRODUCT_NAME_BASE)$(TARGET_BUNDLE_ID_CONFIGURATION_SUFFIX)",
-          "PRODUCT_NAME_BASE": "TonkeeperNatios",
+          "PRODUCT_NAME_BASE": "Tonatios",
           "PRODUCT_MODULE_NAME": "$(PRODUCT_NAME_BASE)",
           "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon$(TARGET_BUNDLE_ID_CONFIGURATION_SUFFIX)",
           "TARGET_BUNDLE_ID_SUFFIX": "app-ios",

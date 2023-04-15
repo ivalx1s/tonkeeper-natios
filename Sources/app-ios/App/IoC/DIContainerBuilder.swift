@@ -1,5 +1,6 @@
 import Swinject
 import HapticsHelper
+import RestClient
 
 class DIContainerBuilder {
     public static func build() -> Container {
@@ -15,6 +16,25 @@ class DIContainerBuilder {
 			AppSaga()
 		}
 		.inObjectScope(.container)
+		
+		container.register(IWalletService.self) { (resolver: Resolver) -> IWalletService in
+			WalletService(
+				
+			)
+		}.inObjectScope(.container)
+		
+		container.register(IWalletSaga.self) { (resolver: Resolver) -> IWalletSaga in
+			WalletSaga(
+				walletService: resolver.resolve(IWalletService.self)!
+			)
+		}.inObjectScope(.container)
+		
+		
+		container.register(IRestClient.self) { (resolver: Resolver) -> IRestClient in
+			RestClient()
+		}.inObjectScope(.container)
+		
+
 	}
 	
     private static func utilsModule(container: Container) {
