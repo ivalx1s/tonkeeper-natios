@@ -45,12 +45,12 @@ struct WalletDashboardView: View {
 					.disabled(ls.pageTabControlSticked)
 					.storingSize(in: $ls.pageTabControl, space: .named(ls.contentNameSpace), logToConsole: false)
 				HPageView(alignment: .center, pageWidth: bounds.width, activePageIndex: $activePageIdx) {
-					ForEach(walletDashboardViewState.tokenLayout.asPages, id: \.self) { page in
+					ForEach(walletDashboardViewState.tokenLayout.asPages.numbered(startingAt: 0)) { tuple in
 						Color.white.opacity(0.001)
 							.overlay(alignment: .top) {
 								EmptyView()
 								//Text(page.id)
-								//DashboardPage(idx: idx)
+								DashboardPage(idx: tuple.number)
 							}
 					}
 				}
@@ -81,9 +81,8 @@ struct WalletDashboardView: View {
 	private func PageTabControl(_ tokenLayout: WalletDashboardView.TokenLayout, idx: Binding<Int?>) -> some View {
 		ScrollView(.horizontal, showsIndicators: false) {
 			switch tokenLayout {
-				case let ._aggregated(assetTypes):
+				case ._aggregated:
 					EmptyView()
-					//PageTabSelector(assetTypes, idx: idx)
 				case let ._discrete(assetTypes):
 					PageTabSelector(assetTypes, idx: idx)
 				case let ._hybrid(assetTypes):
@@ -118,22 +117,17 @@ struct WalletDashboardView: View {
 	}
 	
 	@ViewBuilder
-	private func DashboardPage(assetType: WalletDashboardView.AggregatedAssetType) -> some View {
-//		switch assetType {
-//			case .
-//		}
-		
-		
-		//		switch idx {
-//			case 0:
-//				DashboardPage1()
-//			case 1:
-//				DashboardPage2()
-//			case 2:
-//				DashboardPage3()
-//			default:
-//				EmptyView()
-//		}
+	private func DashboardPage(idx: Int) -> some View {
+		switch idx {
+			case 0:
+				DashboardPage1()
+			case 1:
+				DashboardPage2()
+			case 2:
+				DashboardPage3()
+			default:
+				EmptyView()
+		}
 	}
 	
 	@ViewBuilder
