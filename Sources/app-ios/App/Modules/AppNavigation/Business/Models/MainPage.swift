@@ -1,6 +1,8 @@
 enum MainPage: Equatable, Identifiable {
 	case undefined
 	case wallet(subpage: Wallet)
+	case activity
+	case browser
 	case settings(subpage: Settings)
 	
 	
@@ -12,6 +14,10 @@ enum MainPage: Equatable, Identifiable {
 				return "wallet-\(subpage.rawValue)"
 			case .undefined:
 				return "undefined"
+			case .activity:
+				return "activity"
+			case .browser:
+				return "browser"
 		}
 	}
 	
@@ -23,17 +29,40 @@ enum MainPage: Equatable, Identifiable {
 				return "Wallet"
 			case .undefined:
 				return "undefined"
+			case .activity:
+				return "Activity"
+			case .browser:
+				return "Browser"
 		}
 	}
 	
 	var icon: String {
 		switch self {
 			case .wallet:
-				return "icon_wallet"
+				return "icon_wallet_foreground"
 			case .settings:
 				return "icon_settings"
 			case .undefined:
 				return "undefined"
+			case .activity:
+				return "icon_activity_foreground"
+			case .browser:
+				return "icon_browser"
+		}
+	}
+	
+	var icon_secondary: String? {
+		switch self {
+			case .wallet:
+				return "icon_wallet_background"
+			case .settings:
+				return nil
+			case .undefined:
+				return nil
+			case .activity:
+				return "icon_activity_background"
+			case .browser:
+				return nil
 		}
 	}
 	
@@ -44,6 +73,10 @@ enum MainPage: Equatable, Identifiable {
 			case .wallet:
 				return 1
 			case .undefined:
+				return 1
+			case .activity:
+				return 1
+			case .browser:
 				return 1
 		}
 	}

@@ -118,19 +118,20 @@ extension WalletDashboardView {
 					.fungibleAggregation(
 						[
 							.fungibleToken,
-							//.nonLiquidAsset
-						]
-					),
-					.nonFungibleAggregation(
-						[
+							.nonLiquidAsset,
 							.nonFungibleToken
 						]
-					)
+					),
+//					.nonFungibleAggregation(
+//						[
+//							.nonFungibleToken
+//						]
+//					)
 				]
 			)
 		}
 		
-		
+		/// Hybrid aggregation of a token and non-liquid asset types
 		static var hybridTokenNla: Self {
 			._hybrid(
 				[
@@ -146,6 +147,7 @@ extension WalletDashboardView {
 			)
 		}
 		
+		/// Hybrid aggregation of a token and nft asset types
 		static var hybridTokenNft: Self {
 			._hybrid(
 				[
@@ -163,6 +165,7 @@ extension WalletDashboardView {
 			)
 		}
 		
+		/// Hybrid aggregation of an nft and non-liquid asset types
 		static var hybridNftNlt: Self {
 			._hybrid(
 				[
@@ -180,6 +183,8 @@ extension WalletDashboardView {
 			)
 		}
 		
+		
+		/// Discrete layout with each asset type has its own page
 		static var discrete: Self {
 			._discrete(
 				[
@@ -191,6 +196,8 @@ extension WalletDashboardView {
 		}
 	}
 	
+	#warning("refactor AggregatedAssetType")
+	// seems like we only need one case for aggregation
 	enum AggregatedAssetType: Equatable, Hashable, Comparable, Identifiable {
 		case fungibleAggregation(Array<WalletAssetType>)
 		case nonFungibleAggregation(Array<WalletAssetType>)

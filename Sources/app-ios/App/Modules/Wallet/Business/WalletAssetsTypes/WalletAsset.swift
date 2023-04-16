@@ -1,4 +1,5 @@
 protocol WalletAsset: Sendable, Identifiable {
+	var assetId: AssetIdentifier { get }
 	var assetType: WalletAssetType { get }
 	var name: String { get }
 	var balance: BaseUnit { get }

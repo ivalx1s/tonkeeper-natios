@@ -7,6 +7,8 @@ extension WalletState {
 		switch action {
 			case let .fillStateWithWalletAssets(assets):
 				self._walletAssets = assets
+			case let .addRandomAsset(asset):
+				self._walletAssets.append(asset)
 		}
 	}
 }

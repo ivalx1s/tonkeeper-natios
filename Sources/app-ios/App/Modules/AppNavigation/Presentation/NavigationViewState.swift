@@ -10,7 +10,7 @@ final class NavigationViewState: PerduxViewState {
 	@Published var modalPage: AppModalPage?
 	@Published var modalSheet: AppModalPage?
 	@Published var alert: AlertType?
-	@Published private(set) var bottomNavShown: Bool = false
+	@Published private(set) var bottomNavShown: Bool = true
 	
 	init(navState: NavigationState) {
 		initPipelines(navState: navState)
@@ -41,29 +41,5 @@ final class NavigationViewState: PerduxViewState {
 			.subscribe(on: DispatchQueue.main)
 			.receive(on: DispatchQueue.main)
 			.assign(to: &$alert)
-		
-		$mainPage
-			.subscribe(on: DispatchQueue.main)
-			.map { mainPage in
-				guard let mainPage else {
-					return true
-				}
-				switch mainPage {
-					case let .wallet(subpage):
-						switch subpage {
-							case .dashboard:
-								return true
-							case .scanner:
-								return false
-						}
-					case .settings:
-						return true
-						
-					case .undefined:
-						return true
-				}
-			}
-			.receive(on: DispatchQueue.main)
-			.assign(to: &$bottomNavShown)
 	}
 }

@@ -1,20 +1,3 @@
-/* layout stub symbol */
-
-/*
-"fungibleToken" = "Tooooooookens";
-"nonFungibleToken" = "Coooooollectibles";
-"nonLiquidAsset" = "Aaaaapps";
-*/
-
-
 "fungibleToken" = "Tokens";
 "nonFungibleToken" = "Collectibles";
 "nonLiquidAsset" = "Apps";
-
-
-/*
-"fungibleToken" = "Валюты и токены";
-"nonFungibleToken" = "Коллекции";
-"nonLiquidAsset" = "Приложения";
-
-*/

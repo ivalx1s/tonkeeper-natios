@@ -47,20 +47,26 @@ struct AppRootContainer: View {
 			case .none:
 				Text("")
 					.extendingContent()
-					.transition(.scale(scale: 1))
+					//.transition(.scale(scale: 1))
 			case .undefined:
 				Text("")
 					.extendingContent()
-					.transition(.scale(scale: 1))
+					//.transition(.scale(scale: 1))
 				
 			case let .wallet(subpage):
 				WalletDashboard(subpage)
-					.transition(.scale(scale: 1))
+					//.transition(.scale(scale: 1))
 				
 			case  .settings:
-				Settings()
-					.transition(.scale(scale: 1))
+				SettingsView()
+					//.transition(.scale(scale: 1))
 				
+			case .activity:
+				Text("")
+					.extendingContent()
+			case .some(.browser):
+				Text("")
+					.extendingContent()
 		}
 	}
 	
@@ -76,6 +82,8 @@ struct AppRootContainer: View {
 					activeItemId: mainPage.id,
 					items: [
 						.wallet(subpage: .dashboard),
+						.activity,
+						.browser,
 						.settings(subpage: .general),
 					]
 						.map {
@@ -147,15 +155,11 @@ struct AppRootContainer: View {
 					
 					self.walletDashboardPageIsActive = false
 					self.walletScannerPageIsActive = false
+				case .activity:
+					break
+				case .browser:
+					break
 			}
 		}
 	}
-	
-	
-	@ViewBuilder
-	private func Settings() -> some View {
-		Text("Settings")
-			.extendingContent()
-	}
-
 }

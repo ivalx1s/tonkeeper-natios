@@ -2,15 +2,16 @@ import TonkUI
 import Combine
 
 extension BottomNavigation {
-    enum BgType {
-    case clear
-    case systemMaterial
-    }
+	enum BgType {
+		case clear
+		case color(Color)
+		case systemMaterial
+	}
 }
 
 extension BottomNavigation {
     class LocalState: ObservableObject {
-        @Published var bgType: BgType = .clear
+		@Published var bgType: BgType = .color(.tonSystemBackground)
         @Published var tabbarFrame: CGRect = .zero
         @Published var contentFrame: CGRect = .zero
         @Published var screenBounds: CGRect = .zero
@@ -54,7 +55,9 @@ struct BottomNavigation: View {
                 .storingSize(in: $ls.tabbarFrame)
                 .background(bg.ignoresSafeArea(edges: .bottom))
                 .onChange(of: contentFrame, perform: checkAppearance)
-                .onAppear { bindScreenSize() }
+                .onAppear {
+					bindScreenSize()
+				}
     }
 
     private var content: some View {
@@ -66,19 +69,21 @@ struct BottomNavigation: View {
 						HStack(spacing: 0) {
 							Spacer()
 							VStack(spacing: 0) {
-								Image(item.icon)
-									.resizable()
-									.frame(width: 18, height: 18)
-                                    .scaleEffect(item.iconScaleFactor * (isSelected ? 1.1 : 1))
+								ZStack {
+									Image(item.icon)
+										.resizable()
+									if let icon_secondary = item.icon_secondary {
+										Image(icon_secondary)
+									}
+								}
+									.frame(width: 23, height: 23)
 									.grayscale(isSelected ? 0 : 1)
+									.foregroundColor(isSelected ? Color.tonBlue : Color.tonSecondaryLabel)
 									.padding(.bottom, 8)
-									.dropShadow(type: .sameView(opacity: isSelected ? 1 : 0), radius: 4)
                                     .animation(.easeInOut(duration: 0.15), value: isSelected)
-                                Text(item.label)
-									.font(.montserrat(.caption2))
-									.fontWeight(.semibold)
-									.scaleEffect(0.83)
-									.foregroundColor(isSelected ? .primary : .secondary)
+                                Text(LocalizedStringKey(item.label))
+									.font(.montserrat(.footnote))
+									.foregroundColor(isSelected ? Color.tonBlue : .tonSecondaryLabel)
 							}
 							Spacer()
 						}
@@ -94,9 +99,10 @@ struct BottomNavigation: View {
 
     @ViewBuilder
     private var bg: some View {
-        SystemMaterial(.systemUltraThinMaterial)
-                .opacity(ls.bgType == .clear ? 0 : 1)
-                .animation(.easeInOut(duration: 0.1), value: ls.bgType)
+		VStack(spacing: 0) {
+//			Divider()
+			Color.tonSystemBackground
+		}
     }
 
     private func checkAppearance(_ rect: CGRect) {

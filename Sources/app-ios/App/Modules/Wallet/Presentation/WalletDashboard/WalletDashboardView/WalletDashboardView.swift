@@ -7,6 +7,7 @@ struct WalletDashboardView: View {
 	@ObservedObject private var walletDashboardViewState: WalletDashboardViewState
 	@StateObject private var ls: LocalState
 	@Environment(\.bounds) private var bounds
+	@Environment(\.locale) private var locale
 	@Namespace private var pageControl
 
 	let props: Props
@@ -25,13 +26,16 @@ struct WalletDashboardView: View {
 	@State private var longestTabSelectorTextWidth: CGFloat? = 100
 	@State private var tallestTabSelectorTextHeight: CGFloat?
 	
+	@State var longestPageWidth: CGFloat? = 0
+	@State var tallestPageHeight: CGFloat? = 0
+	
 	
 	var body: some View {
 		Content()
 			.safeAreaInset(edge: .top, spacing: 0) {
 				topContent
 			}
-			.onPreferenceChange(SizeKey.self, perform: { sizes in
+			.onPreferenceChange(TabSizeKey.self, perform: { sizes in
 				guard sizes.count > 0 else {
 					return
 				}
@@ -42,7 +46,7 @@ struct WalletDashboardView: View {
 				guard let idx else { return }
 				// guard walletDashboardViewState.tokenLayout.asPages.count > 2 else { return }
 				withAnimation {
-					pageTabControlProxy?.moveTo(idx)
+					// pageTabControlProxy?.moveTo(idx)
 				}
 			}
 	}
@@ -54,27 +58,53 @@ struct WalletDashboardView: View {
 	private func Content() -> some View {
 		ScrollView([.vertical], showsIndicators: false) {
 			VStack(spacing: 0) {
+				// only used to read coordinates of scroll view's first element
 				Color.clear
-					.frame(height: 10)
+					.frame(height: 0)
 					.storingSize(in: $ls.contentRect, space: .named(ls.contentNameSpace))
+				
+				WalletBalance()
+					.padding(.bottom, 34)
+					.padding(.top, 28)
+				
+				WalletActionsControl()
+					.padding(.bottom, 32)
+				
 				PageTabControl(walletDashboardViewState.tokenLayout, idx: $activePageIdx)
 					.opacity(ls.pageTabControlSticked ? 0 : 1)
 					.disabled(ls.pageTabControlSticked)
 					.storingSize(in: $ls.pageTabControl, space: .named(ls.contentNameSpace), logToConsole: false)
 				HPageView(alignment: .center, pageWidth: bounds.width, activePageIndex: $activePageIdx) {
+//					.fungibleAggregation([.fungibleToken]),
+//					.nonFungibleAggregation([.nonFungibleToken]),
+//					.fungibleAggregation([.nonLiquidAsset]),
 					ForEach(walletDashboardViewState.tokenLayout.asPages.numbered(startingAt: 0)) { tuple in
 						Color.white.opacity(0.001)
 							.overlay(alignment: .top) {
-								DashboardPage(idx: tuple.number)
+								DashboardPage(
+									assetType: tuple.element,
+									fungibleTokens: walletDashboardViewState.fungibleTokens,
+									nonFungibleTokens: walletDashboardViewState.nonFungibleTokens,
+									nonLiquidAsset: walletDashboardViewState.nonLiquidAssets
+								)
 							}
 					}
 				}
-				.frame(height: pageHeight)
+				.equalSizes()
+				.onPreferenceChange(PageSizeKey.self, perform: { sizes in
+					guard sizes.count > 0 else {
+						return
+					}
+					self.longestPageWidth = sizes.map { $0.width }.max()
+					
+					if let maxHeight = sizes.map({ $0.height }).max() {
+						self.tallestPageHeight = maxHeight * 1.05
+					}
+				})
+				.frame(height: tallestPageHeight)
 				.offset(y: walletDashboardViewState.tokenLayout != .aggregated ? 0 : -1*ls.pageTabControl.height)
 				
 			}
-			Color.red
-				.opacity(0.8)
 		}
 		.coordinateSpace(name: ls.contentNameSpace)
 		.onChange(of: activePageIdx) { newIdx in
@@ -92,6 +122,46 @@ struct WalletDashboardView: View {
 		}
 	}
 	
+	@ViewBuilder
+	private func WalletBalance() -> some View {
+		VStack(alignment: .center, spacing: 9) {
+			HStack(spacing: 0) {
+				Text("$")
+					.padding(.trailing, 4)
+					.font(.montserrat(.title))
+					.foregroundColor(.tonPrimaryLabel)
+				Text("28,947")
+					.font(.montserrat(.title))
+					.foregroundColor(.tonPrimaryLabel)
+			}
+			Text("EQF2…G21Z")
+				.font(.montserrat(.subheadline))
+				.foregroundColor(.tonSecondaryLabel)
+		}
+	}
+	
+	@ViewBuilder
+	private func WalletActionsControl() -> some View {
+		HStack(alignment: .bottom, spacing: 27) {
+			WalletActionButton(iconName: "icon_buy", actionName: "Buy")
+			WalletActionButton(iconName: "icon_send", actionName: "Send")
+			WalletActionButton(iconName: "icon_receive", actionName: "Receive")
+			WalletActionButton(iconName: "icon_sell", actionName: "Sell")
+		}
+	}
+	
+	@ViewBuilder
+	private func WalletActionButton(iconName: String, actionName: String) -> some View {
+		VStack(alignment: .center, spacing: 8) {
+			Button(action: { } ) {
+				Image(iconName)
+			}
+			.buttonStyle(.walletAction)
+			Text(LocalizedStringKey(actionName))
+				.font(.montserrat(.callout))
+				.foregroundColor(.tonSecondaryLabel)
+		}
+	}
 	
 	@State private var pageTabControlProxy: PageViewProxy?
 	@State private var activeTabIdx: Int?
@@ -146,7 +216,7 @@ struct WalletDashboardView: View {
 				}
 				.overlay(
 					GeometryReader { proxy in
-						Color.clear.preference(key: SizeKey.self, value: [proxy.size])
+						Color.clear.preference(key: TabSizeKey.self, value: [proxy.size])
 					}
 				)
 			}
@@ -159,6 +229,103 @@ struct WalletDashboardView: View {
 		RoundedRectangle(cornerRadius: 3, style: .continuous)
 			.frame(width: 24, height: 3)
 			.foregroundColor(.tonBlue)
+	}
+	
+	
+//		.fungibleAggregation([.fungibleToken]),
+	@ViewBuilder
+	private func DashboardPage(
+		assetType: AggregatedAssetType,
+		fungibleTokens: [FungibleToken],
+		nonFungibleTokens: [NonFungibleToken],
+		nonLiquidAsset: [NonLiquidAsset]
+	) -> some View {
+		switch assetType {
+			case let .fungibleAggregation(walletAssetTypes):
+				VStack(spacing: 32) {
+					ForEach(walletAssetTypes) { type in
+						switch type {
+							case .fungibleToken:
+								FungibleTokenList(tokens: fungibleTokens)
+							case .nonFungibleToken:
+								NonFungibleTokenGrid(tokens: nonFungibleTokens)
+							case .nonLiquidAsset:
+								NonLiquidAssetList(assets: nonLiquidAsset)
+						}
+					}
+				}
+			case let .nonFungibleAggregation(walletAssetTypes):
+				VStack {
+					ForEach(walletAssetTypes) { type in
+						switch type {
+							case .fungibleToken:
+								FungibleTokenList(tokens: fungibleTokens)
+							case .nonFungibleToken:
+								NonFungibleTokenGrid(tokens: nonFungibleTokens)
+							case .nonLiquidAsset:
+								NonLiquidAssetList(assets: nonLiquidAsset)
+						}
+					}
+				}
+		}
+	}
+	
+	@ViewBuilder
+	private func NonFungibleTokenGrid(tokens: [NonFungibleToken]) -> some View {
+		if tokens.count > 0 {
+			NftGrid(nfts: tokens)
+				.padding(.horizontal)
+				.overlay(
+					GeometryReader { proxy in
+						Color.clear.preference(key: PageSizeKey.self, value: [proxy.size])
+					}
+				)
+		}
+	}
+	
+	@ViewBuilder
+	private func FungibleTokenList(tokens: [FungibleToken]) -> some View {
+		if tokens.count > 0 {
+			let lastElementIdx = tokens.count - 1
+			VStack(spacing: 0) {
+				ForEach(tokens.numbered(startingAt: 0)) { tuple in
+					FungibleTokenListRow(
+						element: tuple.element,
+						idx: tuple.number,
+						isFirst: tuple.number == 0,
+						isLast: tuple.number == lastElementIdx
+					)
+				}
+			}
+			.overlay(
+				GeometryReader { proxy in
+					Color.clear.preference(key: PageSizeKey.self, value: [proxy.size])
+				}
+			)
+		}
+	}
+
+	
+	@ViewBuilder
+	private func NonLiquidAssetList(assets: [NonLiquidAsset]) -> some View {
+		if assets.count > 0 {
+			let lastElementIdx = assets.count - 1
+			VStack(spacing: 0) {
+				ForEach(assets.numbered(startingAt: 0)) { tuple in
+					NonLiquidTokenListRow(
+						element: tuple.element,
+						idx: tuple.number,
+						isFirst: tuple.number == 0,
+						isLast: tuple.number == lastElementIdx
+					)
+				}
+			}
+			.overlay(
+				GeometryReader { proxy in
+					Color.clear.preference(key: PageSizeKey.self, value: [proxy.size])
+				}
+			)
+		}
 	}
 	
 	@ViewBuilder
@@ -236,7 +403,14 @@ struct WalletDashboardView: View {
 	private var navBarButtons: some View {
 		HStack {
 			Spacer()
+			Button(action: { }) {
+				Image("icon_qrscanner")
+					.resizable()
+					.frame(width: 22, height: 22)
+			}
+			.padding(.trailing, 21)
 		}
+		.offset(walletDashboardViewState.tokenLayout != .aggregated ? ls.navbarTitleYOffset : .zero)
 	}
 	
 	@ViewBuilder
@@ -306,6 +480,21 @@ struct PageSelectorButtonStyle: ButtonStyle {
 	}
 }
 
+struct WalletActionButtonStyle: ButtonStyle {
+	func makeBody(configuration: Configuration) -> some View {
+		Circle()
+			.foregroundColor(.tonSecondarySystemBackground)
+			.frame(width: 44, height: 44)
+			.overlay(alignment: .center) {
+				configuration.label
+					.frame(width: 15, height: 15)
+			}
+			.scaleEffect(configuration.isPressed ? 1.3 : 1)
+			.contentShape(Circle())
+			.animation(.easeInOut(duration: 0.3), value: configuration.isPressed)
+	}
+}
+
 extension ButtonStyle where Self == PageSelectorButtonStyle {
 	static func pageSelector(isSelected: Bool) -> PageSelectorButtonStyle {
 		PageSelectorButtonStyle(isSelected: isSelected)
@@ -313,7 +502,21 @@ extension ButtonStyle where Self == PageSelectorButtonStyle {
 }
 
 
-struct SizeKey: PreferenceKey {
+extension ButtonStyle where Self == WalletActionButtonStyle {
+	static var walletAction: WalletActionButtonStyle {
+		WalletActionButtonStyle()
+	}
+}
+
+
+struct PageSizeKey: PreferenceKey {
+	static let defaultValue: [CGSize] = []
+	static func reduce(value: inout [CGSize], nextValue: () -> [CGSize]) {
+		value.append(contentsOf: nextValue())
+	}
+}
+
+struct TabSizeKey: PreferenceKey {
 	static let defaultValue: [CGSize] = []
 	static func reduce(value: inout [CGSize], nextValue: () -> [CGSize]) {
 		value.append(contentsOf: nextValue())
