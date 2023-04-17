@@ -87,6 +87,7 @@ struct FungibleTokenListRow: View {
 		}
 		.padding()
 		.background(WalletListRowBackground(isFirst: isFirst, isLast: isLast))
+		.drawingGroup()
 		.padding(.horizontal)
 	}
 

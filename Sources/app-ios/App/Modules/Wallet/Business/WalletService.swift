@@ -1,49 +1,69 @@
 
+actor WalletAssetsStub {
+	var assets: [any WalletAsset] = []
+	
+	func setAssets(_ assets: [any WalletAsset]) {
+		self.assets = assets
+	}
+	
+	func append(_ asset: any WalletAsset) {
+		self.assets.append(asset)
+	}
+	
+	func append(contentsOf assets: [any WalletAsset]) {
+		self.assets.append(contentsOf: assets)
+	}
+	
+	func deleteRandomAsset(ofType assetType: WalletAssetType) {
+		guard assets.isNotEmpty else {
+			return
+		}
+		
+		
+		guard let randomAssetToDelete = try? assets(ofType: assetType).randomElement() else {
+			return
+		}
+		
+		if let index = assets.firstIndex(where: { $0.assetId == randomAssetToDelete.assetId }) {
+			assets.remove(at: index)
+		}
+	}
+	
+	
+	func assets(ofType assetType: WalletAssetType) throws -> [any WalletAsset] {
+		guard assets.isNotEmpty else {
+			throw WalletAssetStoreError.storeIsEmpty
+		}
+		
+		let filteredAssets = assets.filter { asset in
+			return asset.assetType == assetType
+		}
+		
+		return filteredAssets
+	}
+	
+	func randomAsset(ofType assetType: WalletAssetType) -> (any WalletAsset)? {
+		assets.first(where: { $0.assetType == assetType })
+	}
+	
+	enum WalletAssetStoreError: Error {
+		case storeIsEmpty
+		case noAssetOfSpecifiedCategory
+	}
+}
 
-fileprivate var walletAssets: [any WalletAsset] = [
-	FungibleToken(id: AssetIdentifier(id: "0"), name: "Toncoin", symbol: "TON", balance: BaseUnit(amount: 4343103000000, symbol: "TON", decimals: 9), stubPricePerUnit: 2.34),
-]
+fileprivate var tonAsset: any WalletAsset = FungibleToken(
+	id: AssetIdentifier(id: "0"),
+	name: "Toncoin",
+	symbol: "TON",
+	balance: BaseUnit(amount: 4343103000000,
+					  symbol: "TON",
+					  decimals: 9),
+	stubPricePerUnit: 2.34
+)
+
 
 fileprivate var walletAssetsBuffer: [any WalletAsset] = [
-	FungibleToken(id: AssetIdentifier(id: "315"), name: "NeptuneToken", symbol: "NPT", balance: BaseUnit(amount: 500000000, symbol: "NPT", decimals: 8), stubPricePerUnit: 0.035),
-	FungibleToken(id: AssetIdentifier(id: "316"), name: "JupiterCoin", symbol: "JPC", balance: BaseUnit(amount: 1500000000, symbol: "JPC", decimals: 8), stubPricePerUnit: 0.012),
-	FungibleToken(id: AssetIdentifier(id: "317"), name: "MarsCash", symbol: "MRC", balance: BaseUnit(amount: 300000000, symbol: "MRC", decimals: 6), stubPricePerUnit: 0.002),
-	FungibleToken(id: AssetIdentifier(id: "318"), name: "SaturnStable", symbol: "STS", balance: BaseUnit(amount: 10000000, symbol: "STS", decimals: 6), stubPricePerUnit: 1.0),
-	FungibleToken(id: AssetIdentifier(id: "319"), name: "UranusUtility", symbol: "UUT", balance: BaseUnit(amount: 2000000000, symbol: "UUT", decimals: 8), stubPricePerUnit: 0.016),
-	FungibleToken(id: AssetIdentifier(id: "320"), name: "GalaxyGold", symbol: "GLX", balance: BaseUnit(amount: 5000000, symbol: "GLX", decimals: 4), stubPricePerUnit: 50.0),
-	FungibleToken(id: AssetIdentifier(id: "321"), name: "SolarSilver", symbol: "SLS", balance: BaseUnit(amount: 10000000, symbol: "SLS", decimals: 4), stubPricePerUnit: 25.0),
-	FungibleToken(id: AssetIdentifier(id: "322"), name: "CosmicCopper", symbol: "CSC", balance: BaseUnit(amount: 25000000, symbol: "CSC", decimals: 4), stubPricePerUnit: 10.0),
-	FungibleToken(id: AssetIdentifier(id: "323"), name: "AsteroidAlloy", symbol: "ASA", balance: BaseUnit(amount: 200000000, symbol: "ASA", decimals: 6), stubPricePerUnit: 1.5),
-	FungibleToken(id: AssetIdentifier(id: "324"), name: "MoonMinerals", symbol: "MMN", balance: BaseUnit(amount: 500000000, symbol: "MMN", decimals: 6), stubPricePerUnit: 0.045),
-	FungibleToken(id: AssetIdentifier(id: "325"), name: "OrbitalOil", symbol: "OBO", balance: BaseUnit(amount: 1000000000, symbol: "OBO", decimals: 8), stubPricePerUnit: 0.03),
-	FungibleToken(id: AssetIdentifier(id: "326"), name: "StarshipSteel", symbol: "STS", balance: BaseUnit(amount: 300000000, symbol: "STS", decimals: 6), stubPricePerUnit: 2.5),
-	FungibleToken(id: AssetIdentifier(id: "327"), name: "NebulaNickel", symbol: "NBN", balance: BaseUnit(amount: 1000000000, symbol: "NBN", decimals: 6), stubPricePerUnit: 2.5),
-	FungibleToken(id: AssetIdentifier(id: "34"), name: "Imaginary Coin", symbol: "IMC", balance: BaseUnit(amount: 123456000, symbol: "IMC", decimals: 6), stubPricePerUnit: 0.01),
-	FungibleToken(id: AssetIdentifier(id: "35"), name: "Fiction Token", symbol: "FTK", balance: BaseUnit(amount: 7890000, symbol: "FTK", decimals: 4), stubPricePerUnit: 3.45),
-	FungibleToken(id: AssetIdentifier(id: "36"), name: "Mythical Dollar", symbol: "MYD", balance: BaseUnit(amount: 550000, symbol: "MYD", decimals: 2), stubPricePerUnit: 0.5),
-	FungibleToken(id: AssetIdentifier(id: "328"), name: "AlphaToken", symbol: "APT", balance: BaseUnit(amount: 6000000000, symbol: "APT", decimals: 8), stubPricePerUnit: 0.078),
-	FungibleToken(id: AssetIdentifier(id: "329"), name: "BetaCoin", symbol: "BTC", balance: BaseUnit(amount: 900000000, symbol: "BTC", decimals: 6), stubPricePerUnit: 0.058),
-	FungibleToken(id: AssetIdentifier(id: "330"), name: "GammaCash", symbol: "GMC", balance: BaseUnit(amount: 250000000, symbol: "GMC", decimals: 6), stubPricePerUnit: 0.025),
-	FungibleToken(id: AssetIdentifier(id: "331"), name: "DeltaDollar", symbol: "DTD", balance: BaseUnit(amount: 20000000, symbol: "DTD", decimals: 6), stubPricePerUnit: 1.01),
-	FungibleToken(id: AssetIdentifier(id: "332"), name: "EpsilonEnergy", symbol: "EPE", balance: BaseUnit(amount: 1500000000, symbol: "EPE", decimals: 8), stubPricePerUnit: 0.032),
-	FungibleToken(id: AssetIdentifier(id: "333"), name: "ZetaZinc", symbol: "ZZC", balance: BaseUnit(amount: 4000000, symbol: "ZZC", decimals: 4), stubPricePerUnit: 4.5),
-	FungibleToken(id: AssetIdentifier(id: "334"), name: "EtaEthereum", symbol: "ETE", balance: BaseUnit(amount: 10000000, symbol: "ETE", decimals: 6), stubPricePerUnit: 6.0),
-	FungibleToken(id: AssetIdentifier(id: "335"), name: "ThetaTitanium", symbol: "TTA", balance: BaseUnit(amount: 20000000, symbol: "TTA", decimals: 6), stubPricePerUnit: 9.0),
-	FungibleToken(id: AssetIdentifier(id: "336"), name: "IotaIridium", symbol: "IRI", balance: BaseUnit(amount: 500000000, symbol: "IRI", decimals: 6), stubPricePerUnit: 0.075),
-	FungibleToken(id: AssetIdentifier(id: "337"), name: "KappaKrypton", symbol: "KPT", balance: BaseUnit(amount: 300000000, symbol: "KPT", decimals: 6), stubPricePerUnit: 0.12),
-	FungibleToken(id: AssetIdentifier(id: "338"), name: "LambdaLithium", symbol: "LTH", balance: BaseUnit(amount: 4000000000, symbol: "LTH", decimals: 8), stubPricePerUnit: 0.045),
-	FungibleToken(id: AssetIdentifier(id: "339"), name: "MuMagnesium", symbol: "MGM", balance: BaseUnit(amount: 200000000, symbol: "MGM", decimals: 6), stubPricePerUnit: 0.6),
-	FungibleToken(id: AssetIdentifier(id: "1"), name: "DAI", symbol: "DAI", balance: BaseUnit(amount: 5045000000, symbol: "DAI", decimals: 6), stubPricePerUnit: 0.999),
-	FungibleToken(id: AssetIdentifier(id: "2"), name: "USD Coin", symbol: "USDC", balance: BaseUnit(amount: 50000000, symbol: "USDC", decimals: 6), stubPricePerUnit: 1.0),
-	FungibleToken(id: AssetIdentifier(id: "3"), name: "Tether", symbol: "USDT", balance: BaseUnit(amount: 122000000, symbol: "USDT", decimals: 6), stubPricePerUnit: 0.6),
-	FungibleToken(id: AssetIdentifier(id: "4"), name: "Binance USD", symbol: "BUSD", balance: BaseUnit(amount: 30000, symbol: "BUSD", decimals: 6), stubPricePerUnit: 0.7),
-	FungibleToken(id: AssetIdentifier(id: "5"), name: "PAX", symbol: "BUSD", balance: BaseUnit(amount: 151230000, symbol: "PAX", decimals: 6), stubPricePerUnit: 1.0),
-	FungibleToken(id: AssetIdentifier(id: "17"), name: "Paxos Gold", symbol: "PAXG", balance: BaseUnit(amount: 20, symbol: "PAXG", decimals: 1), stubPricePerUnit: 2020),
-	FungibleToken(id: AssetIdentifier(id: "19"), name: "Imaginary Token", symbol: "IMG", balance: BaseUnit(amount: 250000, symbol: "IMG", decimals: 18), stubPricePerUnit: 0.01),
-	FungibleToken(id: AssetIdentifier(id: "20"), name: "Fictional Token", symbol: "FIC", balance: BaseUnit(amount: 1000000, symbol: "FIC", decimals: 8), stubPricePerUnit: 0.2),
-	FungibleToken(id: AssetIdentifier(id: "21"), name: "Mythical Coin", symbol: "MYTH", balance: BaseUnit(amount: 75000, symbol: "MYTH", decimals: 12), stubPricePerUnit: 0.5),
-	FungibleToken(id: AssetIdentifier(id: "22"), name: "Fantasy Coin", symbol: "FAN", balance: BaseUnit(amount: 500000, symbol: "FAN", decimals: 16), stubPricePerUnit: 0.05),
-	FungibleToken(id: AssetIdentifier(id: "23"), name: "Dream Token", symbol: "DREAM", balance: BaseUnit(amount: 10000000, symbol: "DREAM", decimals: 10), stubPricePerUnit: 0.005),
 	NonFungibleToken(id: AssetIdentifier(id: "6"), name: "CryptoPunk", balance: BaseUnit(amount: 1, symbol: "CryptoPunk", decimals: 0)),
 	NonFungibleToken(id: AssetIdentifier(id: "7"), name: "Bored Ape Yacht Club", balance: BaseUnit(amount: 1, symbol: "BAYC", decimals: 0)),
 	NonFungibleToken(id: AssetIdentifier(id: "8"), name: "World of Women", balance: BaseUnit(amount: 1, symbol: "WOW", decimals: 0)),
@@ -181,42 +201,39 @@ fileprivate var walletAssetsBuffer: [any WalletAsset] = [
 ]
 
 protocol IWalletService {
-	func loadWalletAssets() async -> [any WalletAsset]
-	func getRandomAsset(ofCategory: WalletAssetType) async -> (any WalletAsset)?
+	func loadStubData() async -> [any WalletAsset]
+	func assets() async -> [any WalletAsset]
+	func randomAsset(ofType type: WalletAssetType) async -> (any WalletAsset)?
 	func deleteRandomAsset(of assetType: WalletAssetType) async
 }
 
 final class WalletService: IWalletService {
 	
-	func loadWalletAssets() -> [any WalletAsset] {
-		walletAssets
+	let walletAssets: WalletAssetsStub = .init()
+	
+	func assets() async -> [any WalletAsset]  {
+		await walletAssets.assets
 	}
 	
-	func deleteRandomAsset(of assetType: WalletAssetType) {
-		let assetsOfCategory = walletAssets.indices.filter { walletAssets[$0].assetType == assetType }
-		
-		guard !assetsOfCategory.isEmpty else {
-			return
-		}
-		
-		let randomIndex = assetsOfCategory.randomElement()!
-		print(walletAssets)
-		walletAssets.remove(at: randomIndex)
-		print(walletAssets)
+	func loadStubData() async -> [any WalletAsset] {
+		let fungibleTokens = try! JSONDecoder().decode([FungibleToken].self, from:fungibleTokens.data(using: .utf8)!)
+		let otherAssets = walletAssetsBuffer
+		await walletAssets.append(tonAsset)
+		await walletAssets.setAssets(fungibleTokens)
+		await walletAssets.append(contentsOf: otherAssets)
+		return await walletAssets.assets
 	}
 	
-	func getRandomAsset(ofCategory category: WalletAssetType) -> (any WalletAsset)? {
-		let assetsInCategory = walletAssetsBuffer.enumerated().filter { $0.element.assetType == category }
-		
-		guard !assetsInCategory.isEmpty else {
-			return nil
-		}
-		
-		let randomIndex = Int.random(in: 0..<assetsInCategory.count)
-		let (originalIndex, randomAsset) = assetsInCategory[randomIndex]
-		walletAssetsBuffer.remove(at: originalIndex)
-		walletAssets.append(randomAsset)
-		return randomAsset
+	func loadWalletAssets() async -> [any WalletAsset] {
+		await walletAssets.assets
+	}
+	
+	func deleteRandomAsset(of assetType: WalletAssetType) async {
+		await walletAssets.deleteRandomAsset(ofType: assetType)
+	}
+	
+	func randomAsset(ofType type: WalletAssetType) async -> (any WalletAsset)? {
+		await walletAssets.randomAsset(ofType: type)
 	}
 	
 }

@@ -1,10 +1,11 @@
 import Combine
+import TonkUI
 
 @MainActor
 final class WalletDashboardViewState: PerduxViewState {
 	private var pipelines: Set<AnyCancellable> = []
 	
-	@Published private(set) var fungibleTokens: [FungibleToken] = []
+	@Published private(set) var fungibleTokens: [Numbered<FungibleToken>] = []
 	@Published private(set) var nonFungibleTokens: [NonFungibleToken] = []
 	@Published private(set) var nonLiquidAssets: [NonLiquidAsset] = []
 	
@@ -19,7 +20,9 @@ final class WalletDashboardViewState: PerduxViewState {
 			.receive(on: DispatchQueue.main)
 			.sink { [weak self] assets in
 				let assetsByType = Dictionary(grouping: assets, by: { $0.assetType })
-				self?.fungibleTokens = assetsByType[.fungibleToken] as? [FungibleToken] ?? []
+				
+				let fung = assetsByType[.fungibleToken] as? [FungibleToken] ?? []
+				self?.fungibleTokens = fung.numbered(startingAt: 0)
 				self?.nonFungibleTokens = assetsByType[.nonFungibleToken] as? [NonFungibleToken] ?? []
 				self?.nonLiquidAssets = assetsByType[.nonLiquidAsset] as? [NonLiquidAsset] ?? []
 			}

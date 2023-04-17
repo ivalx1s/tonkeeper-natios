@@ -1,4 +1,4 @@
-enum WalletAssetType: CaseIterable, Equatable, Hashable, Comparable, Identifiable {
+enum WalletAssetType: CaseIterable, Equatable, Hashable, Comparable, Identifiable, Codable {
 	case fungibleToken
 	case nonFungibleToken
 	case nonLiquidAsset

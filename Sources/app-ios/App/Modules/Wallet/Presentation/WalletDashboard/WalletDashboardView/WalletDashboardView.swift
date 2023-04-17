@@ -98,7 +98,7 @@ struct WalletDashboardView: View {
 					self.longestPageWidth = sizes.map { $0.width }.max()
 					
 					if let maxHeight = sizes.map({ $0.height }).max() {
-						self.tallestPageHeight = maxHeight * 1.05
+						self.tallestPageHeight = maxHeight
 					}
 				})
 				.frame(height: tallestPageHeight)
@@ -236,7 +236,7 @@ struct WalletDashboardView: View {
 	@ViewBuilder
 	private func DashboardPage(
 		assetType: AggregatedAssetType,
-		fungibleTokens: [FungibleToken],
+		fungibleTokens: [Numbered<FungibleToken>],
 		nonFungibleTokens: [NonFungibleToken],
 		nonLiquidAsset: [NonLiquidAsset]
 	) -> some View {
@@ -284,11 +284,11 @@ struct WalletDashboardView: View {
 	}
 	
 	@ViewBuilder
-	private func FungibleTokenList(tokens: [FungibleToken]) -> some View {
+	private func FungibleTokenList(tokens: [Numbered<FungibleToken>]) -> some View {
 		if tokens.count > 0 {
 			let lastElementIdx = tokens.count - 1
-			VStack(spacing: 0) {
-				ForEach(tokens.numbered(startingAt: 0)) { tuple in
+			LazyVStack(spacing: 0) {
+				ForEach(tokens) { tuple in
 					FungibleTokenListRow(
 						element: tuple.element,
 						idx: tuple.number,

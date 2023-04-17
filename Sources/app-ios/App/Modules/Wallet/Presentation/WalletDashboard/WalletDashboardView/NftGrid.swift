@@ -25,6 +25,7 @@ struct NftGrid: View {
 		
 		var body: some View {
 			NonFungibleTokenCell(nft: nft)
+				.drawingGroup()
 		}
 		
 		@ViewBuilder

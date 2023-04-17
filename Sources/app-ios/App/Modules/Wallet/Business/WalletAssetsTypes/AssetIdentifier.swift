@@ -1,3 +1,3 @@
-struct AssetIdentifier: Hashable, Equatable {
+struct AssetIdentifier: Hashable, Equatable, Codable {
 	let id: String
 }

@@ -46,7 +46,10 @@ final class WalletSaga: IWalletSaga {
 	
 	private func deleteRandomNonLiquidAsset() async {
 		await walletSvc.deleteRandomAsset(of: .nonLiquidAsset)
-		await loadWalletAssets()
+		let assets = await walletSvc.assets()
+		await action {
+			WalletAction.fillStateWithWalletAssets(assets)
+		}
 	}
 	
 	
@@ -80,11 +83,11 @@ final class WalletSaga: IWalletSaga {
 	}
 	
 	private func getRandom(asset type: WalletAssetType) async -> (any WalletAsset)? {
-		return await walletSvc.getRandomAsset(ofCategory: type)
+		return await walletSvc.randomAsset(ofType: type)
 	}
 	
 	private func loadWalletAssets() async {
-		let assets = await  walletSvc.loadWalletAssets()
+		let assets = await walletSvc.loadStubData()
 		await action {
 			WalletAction.fillStateWithWalletAssets(assets)
 		}
