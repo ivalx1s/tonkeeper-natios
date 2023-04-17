@@ -20,8 +20,8 @@ struct FungibleTokenListRow: View {
 		isLast: Bool
 	) -> some View {
 		HStack(spacing: 0) {
-			Circle()
-				.fill(Color.tonSecondarySystemBackground)
+			Image(element.symbol.lowercased())
+				.resizable()
 				.frame(width: 44, height: 44)
 			VStack(alignment: .leading, spacing: 4) {
 				HStack(spacing: 4) {
