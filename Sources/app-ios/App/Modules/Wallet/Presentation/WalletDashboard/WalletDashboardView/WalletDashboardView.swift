@@ -43,14 +43,13 @@ struct WalletDashboardView: View {
 				self.tallestTabSelectorTextHeight = sizes.map { $0.height }.max()
 			})
 			.onChange(of: activePageIdx) { idx in
-				guard let idx else { return }
+				// guard let idx else { return }
 				// guard walletDashboardViewState.tokenLayout.asPages.count > 2 else { return }
-				withAnimation {
-					// pageTabControlProxy?.moveTo(idx)
-				}
+				// withAnimation {
+				// pageTabControlProxy?.moveTo(idx)
+				// }
 			}
 			.onPreferenceChange(PageTabSelectorSizeKey.self, perform: { sizes in
-//				print("sizes: \(sizes)")
 				ls.pageTabControlSize = sizes[0]
 			})
 			.onPreferenceChange(PageTabSelectorFrameKey.self, perform: { frames in
@@ -72,7 +71,6 @@ struct WalletDashboardView: View {
 				// only used to read coordinates of scroll view's first element
 				Color.clear
 					.frame(height: 0)
-//					.storingSizeDebug(in: ls.rectSubject, onQueue: ls.queue, space: .named(ls.contentNameSpace), logToConsole: false)
 				
 				
 				WalletBalance()
@@ -99,14 +97,6 @@ struct WalletDashboardView: View {
 							Color.clear.preference(key: PageTabSelectorFrameKey.self, value: [proxy.frame(in: .named(ls.contentNameSpace))])
 						}
 					)
-					
-//					.storingSizeDebug(
-//						in: ls.pageTabControlSubject,
-//						onQueue: ls.queue,
-//						space: .named(ls.contentNameSpace),
-//						when: { rect in true },
-//						logToConsole: true
-//					)
 				
 				HPageView(alignment: .center, pageWidth: bounds.width, activePageIndex: $activePageIdx) {
 					ForEach(walletDashboardViewState.tokenLayout.asPages) { aggregatedType in
