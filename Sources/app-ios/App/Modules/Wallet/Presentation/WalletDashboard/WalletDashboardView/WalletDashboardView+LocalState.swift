@@ -1,70 +1,109 @@
 import Combine
+import Foundation
 
 extension WalletDashboardView {
+	struct Conditions: Equatable {
+		let navBarVisibility: Bool
+		let pageTabControlSticked: Bool
+		let pageTabControlYOffset: CGFloat
+		let navbarTitleYOffset: CGFloat
+		
+		static var `default`: Self = .init(
+			navBarVisibility: true,
+			pageTabControlSticked: false,
+			pageTabControlYOffset: .zero,
+			navbarTitleYOffset: .zero
+		)
+	}
 	class LocalState: ObservableObject {
+		var pipelines: Set<AnyCancellable> = []
 		let contentNameSpace = "walletDashboard"
+		let queue = DispatchQueue(label: "viewFrameReaderQueue", qos: .default)
+	
 		
-		@Published var navBarBgOpacity: CGFloat = 0
-		@Published var contentRect: CGRect = .zero
+		let rectSubject = PassthroughSubject<CGRect, Never>()
+		var rectPublisher: AnyPublisher<CGRect, Never> {
+			rectSubject.eraseToAnyPublisher()
+		}
 		
+		@Published private(set) var conditions: Conditions = .default
+		@Published private(set) var navbarHeight: CGFloat = 64
 		
-		@Published private(set) var navbarTitleYOffset: CGSize = .zero
-		@Published private(set) var pageTabControlYOffset: CGSize = .zero
-		@Published private(set) var pageViewOffset: CGFloat = 0
+		@Published var pageTabControlSize: CGSize = .zero
+		static var pageTabControlInitialYOrigin: CGFloat = .zero
 		
-		
-		@Published var pageTabControlSticked: Bool = false
-		@Published var pageTabControl: CGRect = .zero
-		
-		@Published var navbarHeight: CGFloat = 64
 		
 		init() {
 			bindFields()
 		}
+	
 		
 		private func bindFields() {
-			$contentRect
+			rectPublisher
+				.subscribe(on: queue)
+				.receive(on: queue)
 				.map {
-					switch $0.origin.y {
-						case ..<0: return 1
-						case 0...: return 0
-						default: return 0
-					}
+					let yOrigin = $0.origin.y
+					return yOrigin
+				}
+				.map { Self.roundToPrecision($0, precision: 1) }
+				.map {
+					Conditions(
+						navBarVisibility: Self.checkNavBarBgVisibilityCondition($0),
+						pageTabControlSticked: Self.checkPageTabControlStickedCondition($0),
+						pageTabControlYOffset: Self.checkPageTabControlYOffset($0),
+						navbarTitleYOffset: Self.checkNavbarTitleYOffsetCondition($0)
+					)
 				}
 				.removeDuplicates()
-				.assign(to: &$navBarBgOpacity)
-			
-			$pageTabControl
-				.map { rect in
-					let yOrigin = rect.origin.y
-					return yOrigin <= 0
+				.receive(on: DispatchQueue.main)
+				.sink { [weak self] (conditions: Conditions) in
+					self?.conditions = conditions
+//					self?.navBarBgVisible = conditions.navBarVisibility
+//					self?.pageTabControlSticked = conditions.pageTabControlSticked
+//					self?.pageTabControlYOffset = conditions.pageTabControlYOffset
+//					self?.navbarTitleYOffset = conditions.navbarTitleYOffset
 				}
-				.assign(to: &$pageTabControlSticked)
-			
-			$pageTabControl
-				.map { rect in
-					let yOrigin = rect.origin.y
-					if yOrigin < 0 {
-						return .init(width: 0, height: yOrigin)
-					} else {
-						return .zero
-					}
-				}
-				.assign(to: &$navbarTitleYOffset)
-			
-			$pageTabControl
-				.map { rect in
-					let yOrigin = rect.origin.y
-					if yOrigin < 0 {
-						let max = max(yOrigin, -64)
-						return .init(width: 0, height: max)
-					} else {
-						return .zero
-					}
-				}
-				.assign(to: &$pageTabControlYOffset)
-			
-
+				.store(in: &pipelines)
+		}
+		
+		private static func checkNavBarBgVisibilityCondition(_ yOrigin: CGFloat) -> Bool {
+			switch yOrigin {
+				case ..<0: return true
+				case 0...: return false
+				default: return false
+			}
+		}
+		
+		
+		private static func checkPageTabControlYOffset(_ yOrigin: CGFloat) -> CGFloat {
+			if yOrigin < (-1*Self.pageTabControlInitialYOrigin) {
+				let offset = yOrigin + Self.pageTabControlInitialYOrigin
+				return max(offset, -70)
+			} else {
+				return .zero
+			}
+		}
+		
+		private static func checkPageTabControlStickedCondition(_ yOrigin: CGFloat) -> Bool {
+			return yOrigin <= (-1*Self.pageTabControlInitialYOrigin)
+		}
+		
+		private static func checkNavbarTitleYOffsetCondition(_ yOrigin: CGFloat) -> CGFloat {
+			if yOrigin < (-1*Self.pageTabControlInitialYOrigin) {
+				let offset = yOrigin + Self.pageTabControlInitialYOrigin
+				
+				return max(offset, -100)
+			} else {
+				return .zero
+			}
+		}
+		
+		
+		static private func roundToPrecision(_ value: CGFloat, precision: Int) -> CGFloat {
+			let multiplier = pow(10, CGFloat(precision))
+			return round(value * multiplier) / multiplier
 		}
 	}
+	
 }

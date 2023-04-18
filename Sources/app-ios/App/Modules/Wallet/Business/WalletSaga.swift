@@ -15,8 +15,10 @@ final class WalletSaga: IWalletSaga {
 	
 	func apply(_ effect: PerduxEffect) async {
 		switch effect as? WalletSideEffect {
-			case .loadWalletAssets:
+			case .loadStubWalletAssets:
 				await loadWalletAssets()
+			case .loadStubDataInBuffer:
+				await loadStubDataInBuffer()
 			case .addRandomFungibleToken:
 				await addRandomFungibleToken()
 			case .addRandomNonFungibleToken:
@@ -36,60 +38,58 @@ final class WalletSaga: IWalletSaga {
 	
 	
 	private func addRandomNonLiquidAsset() async {
-		let ft = await getRandom(asset: .nonLiquidAsset) as? NonLiquidAsset
-		if let ft {
-			await action {
-				WalletAction.addRandomAsset(ft)
-			}
-		}
+		await addRandom(asset: .nonLiquidAsset)
+		await reloadWalletAssets()
 	}
 	
 	private func deleteRandomNonLiquidAsset() async {
 		await walletSvc.deleteRandomAsset(of: .nonLiquidAsset)
-		let assets = await walletSvc.assets()
-		await action {
-			WalletAction.fillStateWithWalletAssets(assets)
-		}
+		await reloadWalletAssets()
 	}
 	
 	
 	private func addRandomNonFungibleToken() async {
-		let ft = await getRandom(asset: .nonFungibleToken) as? NonFungibleToken
-		if let ft {
-			await action {
-				WalletAction.addRandomAsset(ft)
-			}
-		}
+		await addRandom(asset: .nonFungibleToken)
+		await reloadWalletAssets()
 	}
 	
 	private func deleteRandomNonFungibleToken() async {
 		await walletSvc.deleteRandomAsset(of: .nonFungibleToken)
-		await loadWalletAssets()
+		await reloadWalletAssets()
 	}
 	
 	
 	private func deleteRandomFungibleToken() async {
 		await walletSvc.deleteRandomAsset(of: .fungibleToken)
-		await loadWalletAssets()
+		await reloadWalletAssets()
 	}
 	
 	private func addRandomFungibleToken() async {
-		let ft = await getRandom(asset: .fungibleToken) as? FungibleToken
-		if let ft {
-			await action {
-				WalletAction.addRandomAsset(ft)
-			}
-		}
+		await addRandom(asset: .fungibleToken)
+		await reloadWalletAssets()
 	}
 	
-	private func getRandom(asset type: WalletAssetType) async -> (any WalletAsset)? {
-		return await walletSvc.randomAsset(ofType: type)
+	
+	
+	private func addRandom(asset type: WalletAssetType) async {
+		await walletSvc.addRandomAsset(ofType: type)
+	}
+	
+	private func loadStubDataInBuffer() async {
+		await walletSvc.loadStubDataInBuffer()
+	}
+	
+	private func reloadWalletAssets() async {
+		let assets = await walletSvc.assets()
+		await action {
+			WalletAction.reloadAssetsInState(assets)
+		}
 	}
 	
 	private func loadWalletAssets() async {
 		let assets = await walletSvc.loadStubData()
 		await action {
-			WalletAction.fillStateWithWalletAssets(assets)
+			WalletAction.reloadAssetsInState(assets)
 		}
 	}
 	

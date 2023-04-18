@@ -5,10 +5,8 @@ import Combine
 extension WalletState {
 	func reduce(with action: WalletAction) async {
 		switch action {
-			case let .fillStateWithWalletAssets(assets):
+			case let .reloadAssetsInState(assets):
 				self._walletAssets = assets
-			case let .addRandomAsset(asset):
-				self._walletAssets.append(asset)
 		}
 	}
 }

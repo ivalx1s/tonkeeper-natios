@@ -6,8 +6,8 @@ final class WalletDashboardViewState: PerduxViewState {
 	private var pipelines: Set<AnyCancellable> = []
 	
 	@Published private(set) var fungibleTokens: [Numbered<FungibleToken>] = []
-	@Published private(set) var nonFungibleTokens: [NonFungibleToken] = []
-	@Published private(set) var nonLiquidAssets: [NonLiquidAsset] = []
+	@Published private(set) var nonFungibleTokens: [Numbered<NonFungibleToken>] = []
+	@Published private(set) var nonLiquidAssets: [Numbered<NonLiquidAsset>] = []
 	
 	@Published private(set) var tokenLayout: WalletDashboardView.TokenLayout = .aggregated
 	
@@ -21,10 +21,17 @@ final class WalletDashboardViewState: PerduxViewState {
 			.sink { [weak self] assets in
 				let assetsByType = Dictionary(grouping: assets, by: { $0.assetType })
 				
-				let fung = assetsByType[.fungibleToken] as? [FungibleToken] ?? []
-				self?.fungibleTokens = fung.numbered(startingAt: 0)
-				self?.nonFungibleTokens = assetsByType[.nonFungibleToken] as? [NonFungibleToken] ?? []
-				self?.nonLiquidAssets = assetsByType[.nonLiquidAsset] as? [NonLiquidAsset] ?? []
+				// ensuring collection is unique
+				let fungibleTokens = (assetsByType[.fungibleToken] as? [FungibleToken] ?? []).unique(by: \.id)
+				self?.fungibleTokens = fungibleTokens.numbered(startingAt: 0)
+				
+				// ensuring collection is unique
+				let nonFungibleTokens = (assetsByType[.nonFungibleToken] as? [NonFungibleToken] ?? []).unique(by: \.id)
+				self?.nonFungibleTokens = nonFungibleTokens.numbered(startingAt: 0)
+				
+				// ensuring collection is unique
+				let nonLiquidAssets = (assetsByType[.nonLiquidAsset] as? [NonLiquidAsset] ?? []).unique(by: \.id)
+				self?.nonLiquidAssets = nonLiquidAssets.numbered(startingAt: 0)
 			}
 			.store(in: &pipelines)
 		

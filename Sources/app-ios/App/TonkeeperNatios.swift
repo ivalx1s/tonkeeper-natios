@@ -120,7 +120,15 @@ struct TonkeeperNatios: App {
 		}
 		
 		performAsync {
-			WalletSideEffect.loadWalletAssets
+			WalletSideEffect.loadStubWalletAssets
+		} label: {
+			"loading stub wallet assets"
+		}
+		
+		performAsync(.serially, withPriority: .medium) {
+			WalletSideEffect.loadStubDataInBuffer
+		} label: {
+			"loading more stub wallet assets"
 		}
 		
     }

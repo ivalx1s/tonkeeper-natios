@@ -2,7 +2,7 @@ import TonkUI
 
 struct NftGrid: View {
 	
-	let nfts: [NonFungibleToken]
+	let nfts: [Numbered<NonFungibleToken>]
 	
 	private let columns: [GridItem] = [
 		GridItem(.flexible(), spacing: 8),
@@ -13,7 +13,7 @@ struct NftGrid: View {
 	var body: some View {
 		LazyVGrid(columns: columns, alignment: .center, spacing: 10) {
 			ForEach(nfts) { nft in
-				Cell(nft: nft)
+				Cell(nft: nft.element)
 			}
 		}
 	}
@@ -25,14 +25,14 @@ struct NftGrid: View {
 		
 		var body: some View {
 			NonFungibleTokenCell(nft: nft)
-				.drawingGroup()
+				//.drawingGroup()
 		}
 		
 		@ViewBuilder
 		private func NonFungibleTokenCell(nft: NonFungibleToken) -> some View {
 			VStack(spacing: 0) {
 				Color.gray
-					.opacity(0.6)
+					//.opacity(0.6)
 					.cornerRadius(20, corners: .topLeft)
 					.cornerRadius(20, corners: .topRight)
 					.frame(width: 114, height: 114)
@@ -44,6 +44,7 @@ struct NftGrid: View {
 						Meta(nft)
 					}
 			}
+			.drawingGroup()
 		}
 		
 		@ViewBuilder

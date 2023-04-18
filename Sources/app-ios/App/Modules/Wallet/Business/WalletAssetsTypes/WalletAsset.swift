@@ -1,11 +1,11 @@
-protocol WalletAsset: Sendable, Identifiable, Equatable, Codable {
+protocol WalletAsset: Sendable, Identifiable, Equatable, Codable, Hashable {
 	var assetId: AssetIdentifier { get }
 	var assetType: WalletAssetType { get }
 	var name: String { get }
 	var balance: BaseUnit { get }
 }
 
-struct BaseUnit: Sendable, Equatable, Codable {
+struct BaseUnit: Sendable, Equatable, Codable, Hashable {
 	let amount: UInt
 	let symbol: String
 	let decimals: UInt

@@ -1,6 +1,7 @@
 
 enum WalletSideEffect: PerduxEffect {
-	case loadWalletAssets
+	case loadStubWalletAssets
+	case loadStubDataInBuffer
 	case addRandomFungibleToken
 	case deleteRandomFungibleToken
 	

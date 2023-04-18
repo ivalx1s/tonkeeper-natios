@@ -1,6 +1,7 @@
 
 actor WalletAssetsStub {
-	var assets: [any WalletAsset] = []
+	private(set) var assets: [any WalletAsset] = []
+	
 	
 	func setAssets(_ assets: [any WalletAsset]) {
 		self.assets = assets
@@ -8,6 +9,10 @@ actor WalletAssetsStub {
 	
 	func append(_ asset: any WalletAsset) {
 		self.assets.append(asset)
+	}
+	
+	func remove(at idx: Int) {
+		self.assets.remove(at: idx)
 	}
 	
 	func append(contentsOf assets: [any WalletAsset]) {
@@ -43,7 +48,7 @@ actor WalletAssetsStub {
 	}
 	
 	func randomAsset(ofType assetType: WalletAssetType) -> (any WalletAsset)? {
-		assets.first(where: { $0.assetType == assetType })
+		try? assets(ofType: assetType).randomElement()
 	}
 	
 	enum WalletAssetStoreError: Error {
@@ -63,7 +68,7 @@ fileprivate var tonAsset: any WalletAsset = FungibleToken(
 )
 
 
-fileprivate var walletAssetsBuffer: [any WalletAsset] = [
+fileprivate var _walletAssetsBuffer: [any WalletAsset] = [
 	NonFungibleToken(id: AssetIdentifier(id: "6"), name: "CryptoPunk", balance: BaseUnit(amount: 1, symbol: "CryptoPunk", decimals: 0)),
 	NonFungibleToken(id: AssetIdentifier(id: "7"), name: "Bored Ape Yacht Club", balance: BaseUnit(amount: 1, symbol: "BAYC", decimals: 0)),
 	NonFungibleToken(id: AssetIdentifier(id: "8"), name: "World of Women", balance: BaseUnit(amount: 1, symbol: "WOW", decimals: 0)),
@@ -202,38 +207,50 @@ fileprivate var walletAssetsBuffer: [any WalletAsset] = [
 
 protocol IWalletService {
 	func loadStubData() async -> [any WalletAsset]
+	func loadStubDataInBuffer() async
 	func assets() async -> [any WalletAsset]
-	func randomAsset(ofType type: WalletAssetType) async -> (any WalletAsset)?
+	func addRandomAsset(ofType type: WalletAssetType) async
 	func deleteRandomAsset(of assetType: WalletAssetType) async
 }
 
 final class WalletService: IWalletService {
 	
-	let walletAssets: WalletAssetsStub = .init()
+	private let walletAssets: WalletAssetsStub = .init()
+	private let walletAssetsBuffer: WalletAssetsStub = .init()
 	
 	func assets() async -> [any WalletAsset]  {
 		await walletAssets.assets
 	}
 	
 	func loadStubData() async -> [any WalletAsset] {
-		let fungibleTokens = try! JSONDecoder().decode([FungibleToken].self, from:fungibleTokens.data(using: .utf8)!)
-		let otherAssets = walletAssetsBuffer
+		let stubData0 = try! JSONDecoder().decode([FungibleToken].self, from:stubData0.data(using: .utf8)!)
+		let otherAssets = _walletAssetsBuffer
+		let fungibleTokens = try! JSONDecoder().decode([FungibleToken].self, from: fungibleTokens.data(using: .utf8)!)
 		await walletAssets.append(tonAsset)
-		await walletAssets.setAssets(fungibleTokens)
-		await walletAssets.append(contentsOf: otherAssets)
+		await walletAssets.append(contentsOf: stubData0)
+//		await walletAssets.append(contentsOf: otherAssets)
+//		await walletAssets.append(contentsOf: fungibleTokens)
 		return await walletAssets.assets
 	}
 	
-	func loadWalletAssets() async -> [any WalletAsset] {
-		await walletAssets.assets
+	func loadStubDataInBuffer() async {
+		let otherAssets = _walletAssetsBuffer
+		let fungibleTokens = try! JSONDecoder().decode([FungibleToken].self, from: fungibleTokens.data(using: .utf8)!)
+		await walletAssetsBuffer.append(contentsOf: otherAssets)
+		await walletAssetsBuffer.append(contentsOf: fungibleTokens)
 	}
 	
 	func deleteRandomAsset(of assetType: WalletAssetType) async {
 		await walletAssets.deleteRandomAsset(ofType: assetType)
 	}
 	
-	func randomAsset(ofType type: WalletAssetType) async -> (any WalletAsset)? {
-		await walletAssets.randomAsset(ofType: type)
+	func addRandomAsset(ofType type: WalletAssetType) async {
+		if let asset = await walletAssetsBuffer.randomAsset(ofType: type) {
+			await walletAssets.append(asset)
+			if let idx = await walletAssetsBuffer.assets.firstIndex(where: { $0.assetId == asset.assetId }) {
+				await walletAssetsBuffer.remove(at: idx)
+			}
+		}
+		
 	}
-	
 }
