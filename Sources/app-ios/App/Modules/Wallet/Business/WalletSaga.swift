@@ -87,10 +87,8 @@ final class WalletSaga: IWalletSaga {
 	}
 	
 	private func loadWalletAssets() async {
-		let assets = await walletSvc.loadStubData()
-		await action {
-			WalletAction.reloadAssetsInState(assets)
-		}
+		await walletSvc.loadStubData()
+		await reloadWalletAssets()
 	}
 	
 }
