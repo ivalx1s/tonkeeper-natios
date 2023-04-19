@@ -36,7 +36,7 @@ struct SettingsView: View {
 				}
 				WalletActionButton(iconName: "icon_sell", actionName: "Remove NonFungible Token") {
 					await action {
-						WalletSideEffect.deleteRandomFungibleToken
+						WalletSideEffect.deleteRandomNonFungibleToken
 					}
 				}
 			}

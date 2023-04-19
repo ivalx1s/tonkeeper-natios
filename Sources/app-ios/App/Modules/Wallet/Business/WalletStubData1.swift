@@ -3,6 +3,52 @@
 
 
 extension WalletService {
+	
+	static let _walletHybridAssets: [any WalletAsset] = [
+		FungibleToken(
+			id: AssetIdentifier(id: "000"),
+			name: "Toncoin",
+			symbol: "TON",
+			balance: BaseUnit(amount: 4343103000000,
+							  symbol: "TON",
+							  decimals: 9),
+			stubPricePerUnit: 2.34
+		),
+		FungibleToken(
+			id: AssetIdentifier(id: "001"),
+			name: "Toncoin",
+			symbol: "TON",
+			balance: BaseUnit(amount: 4343103000000,
+							  symbol: "TON",
+							  decimals: 9),
+			stubPricePerUnit: 2.34
+		),
+		FungibleToken(
+			id: AssetIdentifier(id: "002"),
+			name: "Toncoin",
+			symbol: "TON",
+			balance: BaseUnit(amount: 4343103000000,
+							  symbol: "TON",
+							  decimals: 9),
+			stubPricePerUnit: 2.34
+		),
+		FungibleToken(
+			id: AssetIdentifier(id: "003"),
+			name: "Toncoin",
+			symbol: "TON",
+			balance: BaseUnit(amount: 4343103000000,
+							  symbol: "TON",
+							  decimals: 9),
+			stubPricePerUnit: 2.34
+		),
+		NonLiquidAsset(id: AssetIdentifier(id: "511"), name: "Ethereum 2.0 Staking", description: "Ethereum 2.0 Staking", balance: BaseUnit(amount: 5, symbol: "ETH2", decimals: 18), stubPricePerUnit: 13),
+		NonLiquidAsset(id: AssetIdentifier(id: "512"), name: "Cardano Staking", description: "Cardano Staking", balance: BaseUnit(amount: 100000, symbol: "ADA", decimals: 6), stubPricePerUnit: 24),
+		NonLiquidAsset(id: AssetIdentifier(id: "513"), name: "Ethereum 2.0 Staking", description: "Ethereum 2.0 Staking", balance: BaseUnit(amount: 5, symbol: "ETH2", decimals: 18), stubPricePerUnit: 13),
+		NonLiquidAsset(id: AssetIdentifier(id: "514"), name: "Ethereum 2.0 Staking", description: "Ethereum 2.0 Staking", balance: BaseUnit(amount: 5, symbol: "ETH2", decimals: 18), stubPricePerUnit: 13),
+		NonLiquidAsset(id: AssetIdentifier(id: "515"), name: "Cardano Staking", description: "Cardano Staking", balance: BaseUnit(amount: 100000, symbol: "ADA", decimals: 6), stubPricePerUnit: 24),
+		NonFungibleToken(id: AssetIdentifier(id: "6"), name: "CryptoPunk", balance: BaseUnit(amount: 1, symbol: "CryptoPunk", decimals: 0)),
+	]
+	
 	static var _walletNonLiquidAssetsBuffer: [any WalletAsset] = [
 		NonLiquidAsset(id: AssetIdentifier(id: "511"), name: "Ethereum 2.0 Staking", description: "Ethereum 2.0 Staking", balance: BaseUnit(amount: 5, symbol: "ETH2", decimals: 18), stubPricePerUnit: 13),
 		NonLiquidAsset(id: AssetIdentifier(id: "512"), name: "Cardano Staking", description: "Cardano Staking", balance: BaseUnit(amount: 100000, symbol: "ADA", decimals: 6), stubPricePerUnit: 24),

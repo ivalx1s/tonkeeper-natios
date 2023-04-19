@@ -70,7 +70,7 @@ final class WalletDashboardViewState: PerduxViewState {
 					
 					// edge case when wallet contains only nfts and tokens 10 or more by wight
 					if nlt.count == 0, ((ft.count + (nft.count*2)) > 10) {
-						return .hybridTokenNft
+						return .hybridAllTokenPlusNft
 					}
 					
 					// edge case when wallet contains only tokens and non-liquid assets 10 or less by wight
@@ -86,7 +86,7 @@ final class WalletDashboardViewState: PerduxViewState {
 					// edge case when wallet contains tokens and non-liquid assets 10 or less by wight
 					// and also contains nfts
 					if nft.count > 0, ((ft.count + nlt.count) < 10) {
-						return .hybridTokenNft
+						return .hybridAllTokenPlusNft
 					}
 				
 					return .discrete
@@ -158,13 +158,13 @@ extension WalletDashboardView {
 		}
 		
 		/// Hybrid aggregation of a token and nft asset types
-		static var hybridTokenNft: Self {
+		static var hybridAllTokenPlusNft: Self {
 			._hybrid(
 				[
 					.fungibleAggregation(
 						[
 							.fungibleToken,
-							//.nonLiquidAsset
+							.nonLiquidAsset
 						]),
 					.nonFungibleAggregation(
 						[
@@ -242,6 +242,13 @@ extension WalletDashboardView {
 			}
 		}
 		
+	}
+}
+
+extension Array where Element == WalletAssetType {
+	var aggregatedFungibleAndNonLiquid: Bool {
+		let targetArray: Array<Element> = [.nonLiquidAsset, .fungibleToken]
+		return self.contentEqualIgnoringOrder(targetArray)
 	}
 }
 

@@ -86,7 +86,8 @@ final class WalletService: IWalletService {
 	}
 	
 	func loadStubData() async {
-		await walletAssets.append(tonAsset)
+//		await walletAssets.append(tonAsset)
+		await walletAssets.append(contentsOf: Self._walletHybridAssets)
 	}
 	
 	func loadStubDataInBuffer() async {
