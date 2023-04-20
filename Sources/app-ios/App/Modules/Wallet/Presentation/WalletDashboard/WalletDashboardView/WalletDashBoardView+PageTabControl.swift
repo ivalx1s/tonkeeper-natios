@@ -51,7 +51,6 @@ extension WalletDashboardView {
 			}
 			.extendingContent(.horizontal)
 			.padding(.top)
-			.frame(width: bounds.width, height: 70)
 		}
 	}
 }

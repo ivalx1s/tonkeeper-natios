@@ -60,10 +60,6 @@ extension WalletDashboardView {
 				.receive(on: DispatchQueue.main)
 				.sink { [weak self] (conditions: Conditions) in
 					self?.conditions = conditions
-//					self?.navBarBgVisible = conditions.navBarVisibility
-//					self?.pageTabControlSticked = conditions.pageTabControlSticked
-//					self?.pageTabControlYOffset = conditions.pageTabControlYOffset
-//					self?.navbarTitleYOffset = conditions.navbarTitleYOffset
 				}
 				.store(in: &pipelines)
 		}
@@ -80,7 +76,7 @@ extension WalletDashboardView {
 		private static func checkPageTabControlYOffset(_ yOrigin: CGFloat) -> CGFloat {
 			if yOrigin < (-1*Self.pageTabControlInitialYOrigin) {
 				let offset = yOrigin + Self.pageTabControlInitialYOrigin
-				return max(offset, -70)
+				return max(offset, .dashboardNavbarPageControlStickedOffset)
 			} else {
 				return .zero
 			}
@@ -94,7 +90,7 @@ extension WalletDashboardView {
 			if yOrigin < (-1*Self.pageTabControlInitialYOrigin) {
 				let offset = yOrigin + Self.pageTabControlInitialYOrigin
 				
-				return max(offset, -100)
+				return max(offset, -200)
 			} else {
 				return .zero
 			}

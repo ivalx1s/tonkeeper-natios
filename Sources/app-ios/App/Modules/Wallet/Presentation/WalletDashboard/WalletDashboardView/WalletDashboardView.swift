@@ -131,27 +131,26 @@ struct WalletDashboardView: View {
 					WalletActionsControl()
 						.padding(.bottom, 32)
 					
-					
 					PageTabControl(walletDashboardViewState.tokenLayout, activePageIdx: $activePageIdx, longestTabSelectorTextWidth: longestTabSelectorTextWidth, totalTabsWidth: totalTabsWidth, pageTabSelectorOffset: pageTabSelectorOffset)
 						.opacity(ls.conditions.pageTabControlSticked ? 0 : 1)
 						.opacity(tabSelectorIsVisible ? 1 : 0)
+						.frame(width: bounds.width, height: 70)
 						.disabled(ls.conditions.pageTabControlSticked)
 						.overlay(
 							GeometryReader { proxy in
 								Color.clear.preference(key: PageTabSelectorFrameKey.self, value: [proxy.frame(in: .named(ls.contentNameSpace))])
 							}
 						)
-					
 					/* // continue experimentation with TabView-based paging behavior instead of HPageView
 					 TabView {
 					 
 					 }
 					 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
 					 */
-					
-					Color.clear.frame(height: 16)
+					Color.clear
+						.frame(height: 16)
 						.id("PageTabControlBottomPadding")
-					
+				
 					HPageView(alignment: .center, pageWidth: bounds.width, activePageIndex: $activePageIdx) {
 						ForEach(walletDashboardViewState.tokenLayout.asPages.numbered(startingAt: 0)) { aggregatedType in
 							Color.white.opacity(0.001)
@@ -379,11 +378,6 @@ struct WalletDashboardView: View {
 				WalletDashboardTitle()
 				Spacer(minLength: 0)
 			}
-//			.transition(
-//				.move(edge: .top).combined(with: .opacity),
-//				withAnimation: .easeInOut,
-//				isPresentInParentContainer:  $isActiveInParentContainer
-//			)
 			.offset(y: walletDashboardViewState.tokenLayout != .aggregated ? ls.conditions.navbarTitleYOffset : .zero)
 			.overlay(alignment: .bottom) {
 				VStack(spacing: 0) {
@@ -392,6 +386,7 @@ struct WalletDashboardView: View {
 							.offset(y: ls.conditions.pageTabControlYOffset)
 							.opacity(ls.conditions.pageTabControlSticked ? 1 : 0)
 							.disabled(!ls.conditions.pageTabControlSticked)
+							.frame(width: bounds.width, height: 70)
 					}
 				}
 				.offset(y: ls.pageTabControlSize.height)
@@ -409,9 +404,15 @@ struct WalletDashboardView: View {
 				.ignoresSafeArea()
 			VStack(spacing: 0) {
 				Spacer()
-				Divider()
-					.opacity(ls.conditions.navBarVisibility ? 0.8 : 0.1)
-					//.offset(walletDashboardViewState.tokenLayout != .aggregated ? ls.navbarTitleYOffset : .zero)
+				ZStack {
+					Divider()
+						.opacity(ls.conditions.navBarVisibility ? 0.8 : 0.1)
+						.offset(y: walletDashboardViewState.tokenLayout != .aggregated ? ls.conditions.navbarTitleYOffset : 0)
+						.offset(y: ls.conditions.pageTabControlSticked ? -100 : 0)
+						.animation(.navbarAnimation(ls.conditions.pageTabControlSticked), value: ls.conditions.pageTabControlSticked)
+					Divider()
+						.opacity(ls.conditions.pageTabControlYOffset == .dashboardNavbarPageControlStickedOffset ? 0.8 : 0)
+				}
 			}
 		}
 //		.opacity(ls.navBarBgVisible ? 1 :)
@@ -431,6 +432,8 @@ struct WalletDashboardView: View {
 			.padding(.trailing, 21)
 		}
 		.offset(y: walletDashboardViewState.tokenLayout != .aggregated ? ls.conditions.navbarTitleYOffset : .zero)
+		.offset(y: ls.conditions.pageTabControlSticked ? -100 : 0)
+		.animation(.navbarAnimation(ls.conditions.pageTabControlSticked), value: ls.conditions.pageTabControlSticked)
 	}
 	
 	@ViewBuilder
@@ -443,18 +446,8 @@ struct WalletDashboardView: View {
 		     // without explicit frame text breaks
 		     // y-origin of a scroll view inner coordinate space
 			.frame(height: ls.navbarHeight)
-	}
-	
-	@ViewBuilder
-	private func PageTabControlInNavbar() -> some View {
-		VStack(spacing: 0) {
-			if walletDashboardViewState.tokenLayout != .aggregated {
-				PageTabControl(walletDashboardViewState.tokenLayout, activePageIdx: $activePageIdx, longestTabSelectorTextWidth: longestTabSelectorTextWidth, totalTabsWidth: totalTabsWidth, pageTabSelectorOffset: pageTabSelectorOffset)
-					.offset(y: ls.conditions.pageTabControlYOffset)
-					.opacity(ls.conditions.pageTabControlSticked ? 1 : 0)
-					.disabled(!ls.conditions.pageTabControlSticked)
-			}
-		}
+			.offset(y: ls.conditions.pageTabControlSticked ? -100 : 0)
+			.animation(.navbarAnimation(ls.conditions.pageTabControlSticked), value: ls.conditions.pageTabControlSticked)
 	}
 
 	
@@ -484,6 +477,11 @@ extension WalletDashboardView {
 	}
 }
 
+extension Animation {
+	static func navbarAnimation(_ condition: Bool) -> Animation {
+			.easeOut(duration: .dashboardNavbarAnimationDuration).delay(condition ? .dashboardNavbarAnimationDelay : 0)
+	}
+}
 
 struct PageSelectorButtonStyle: ButtonStyle {
 	let isSelected: Bool
@@ -542,4 +540,5 @@ struct TabSizeKey: PreferenceKey {
 		value.append(contentsOf: nextValue())
 	}
 }
+
 
