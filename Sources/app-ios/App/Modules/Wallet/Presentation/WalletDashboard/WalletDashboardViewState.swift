@@ -4,6 +4,7 @@ import TonkUI
 @MainActor
 final class WalletDashboardViewState: PerduxViewState {
 	private var pipelines: Set<AnyCancellable> = []
+	private let backgroundQueue = DispatchQueue(label: "WalletDashboardViewState-Background", qos: .userInteractive)
 	
 	@Published private(set) var fungibleTokens: [Numbered<FungibleToken>] = []
 	@Published private(set) var nonFungibleTokens: [Numbered<NonFungibleToken>] = []
@@ -11,32 +12,90 @@ final class WalletDashboardViewState: PerduxViewState {
 	
 	@Published private(set) var tokenLayout: WalletDashboardView.TokenLayout = .aggregated
 	
+	
+	private let _fungibleTokensSubject = PassthroughSubject<[Numbered<FungibleToken>], Never>()
+	private var fungibleTokensPublisher: AnyPublisher<[Numbered<FungibleToken>], Never> {
+		_fungibleTokensSubject.eraseToAnyPublisher()
+	}
+	
+	private let _nonFungibleTokensSubject = PassthroughSubject<[Numbered<NonFungibleToken>], Never>()
+	private var nonFungibleTokensPublisher: AnyPublisher<[Numbered<NonFungibleToken>], Never> {
+		_nonFungibleTokensSubject.eraseToAnyPublisher()
+	}
+	
+	private let _nonLiquidAssetsSubject = PassthroughSubject<[Numbered<NonLiquidAsset>], Never>()
+	private var nonLiquidAssetsPublisher: AnyPublisher<[Numbered<NonLiquidAsset>], Never> {
+		_nonLiquidAssetsSubject.eraseToAnyPublisher()
+	}
+	
 	init(walletState: WalletState) {
 		initPipelines(walletState: walletState)
 	}
 	
 	private func initPipelines(walletState: WalletState) {
 		walletState.walletAssets
-			.receive(on: DispatchQueue.main)
+			.receive(on: backgroundQueue)
 			.sink { [weak self] assets in
+				guard let self else { return  }
 				let assetsByType = Dictionary(grouping: assets, by: { $0.assetType })
 				
 				// ensuring collection is unique
-				let fungibleTokens = (assetsByType[.fungibleToken] as? [FungibleToken] ?? []).unique(by: \.id)
-				self?.fungibleTokens = fungibleTokens.numbered(startingAt: 0)
+				let fungibleTokens = (assetsByType[.fungibleToken] as? [FungibleToken] ?? [])
+					.sorted(by: { $0.balance > $1.balance })
+					.unique(by: \.id)
+					.numbered(startingAt: 0)
+				self._fungibleTokensSubject.send(fungibleTokens)
+				
 				
 				// ensuring collection is unique
-				let nonFungibleTokens = (assetsByType[.nonFungibleToken] as? [NonFungibleToken] ?? []).unique(by: \.id)
-				self?.nonFungibleTokens = nonFungibleTokens.numbered(startingAt: 0)
+				let nonFungibleTokens = (assetsByType[.nonFungibleToken] as? [NonFungibleToken] ?? [])
+					.sorted(by: { $0.balance > $1.balance })
+					.unique(by: \.id)
+					.numbered(startingAt: 0)
+				self._nonFungibleTokensSubject.send(nonFungibleTokens)
 				
 				// ensuring collection is unique
-				let nonLiquidAssets = (assetsByType[.nonLiquidAsset] as? [NonLiquidAsset] ?? []).unique(by: \.id)
-				self?.nonLiquidAssets = nonLiquidAssets.numbered(startingAt: 0)
+				let nonLiquidAssets = (assetsByType[.nonLiquidAsset] as? [NonLiquidAsset] ?? [])
+					.sorted(by: { $0.balance > $1.balance })
+					.unique(by: \.id)
+					.numbered(startingAt: 0)
+				self._nonLiquidAssetsSubject.send(nonLiquidAssets)
+			}
+			.store(in: &pipelines)
+		
+		fungibleTokensPublisher
+			.receive(on: DispatchQueue.main)
+			.sink { [weak self] ft in
+				guard let self else { return }
+				//withAnimation {
+					self.fungibleTokens = ft
+				print("fungible count: \(ft.count)")
+				//}
+			}
+			.store(in: &pipelines)
+		
+		nonFungibleTokensPublisher
+			.receive(on: DispatchQueue.main)
+			.sink { [weak self] nft in
+				guard let self else { return }
+				//withAnimation {
+					self.nonFungibleTokens = nft
+				//}
+			}
+			.store(in: &pipelines)
+		
+		nonLiquidAssetsPublisher
+			.receive(on: DispatchQueue.main)
+			.sink { [weak self] nlt in
+				guard let self else { return }
+				//withAnimation {
+					self.nonLiquidAssets = nlt
+				//}
 			}
 			.store(in: &pipelines)
 		
 		Publishers.Zip3($fungibleTokens, $nonFungibleTokens, $nonLiquidAssets)
-			.map { ft, nft,  nlt in
+			.map { (ft, nft,  nlt) -> WalletDashboardView.TokenLayout in
 				if (ft.count + (nft.count * 2) + nlt.count) >= 10 {
 					// edge case when wallet contains only nfts
 					if nft.count > 0, ft.count == 0, nlt.count == 0 {
@@ -94,7 +153,13 @@ final class WalletDashboardViewState: PerduxViewState {
 				return .aggregated
 			}
 			.receive(on: DispatchQueue.main)
-			.assign(to: &$tokenLayout)
+			.sink { [weak self] tokenLayout in
+				guard let self else { return }
+				//withAnimation {
+					self.tokenLayout = tokenLayout
+				//}
+			}
+			.store(in: &pipelines)
 		
 		$tokenLayout
 			.removeDuplicates()
@@ -107,11 +172,11 @@ final class WalletDashboardViewState: PerduxViewState {
 
 extension WalletDashboardView {
 	enum TokenLayout: Equatable, Hashable {
-		case _aggregated(Array<AggregatedAssetType>)
-		case _hybrid(Array<AggregatedAssetType>)
-		case _discrete(Array<AggregatedAssetType>)
+		case _aggregated(Array<AssetPage>)
+		case _hybrid(Array<AssetPage>)
+		case _discrete(Array<AssetPage>)
 		
-		var asPages: Array<AggregatedAssetType> {
+		var asPages: Array<AssetPage> {
 			switch self {
 				case let ._aggregated(aggregatedAssetTypes):
 					return aggregatedAssetTypes
@@ -125,18 +190,13 @@ extension WalletDashboardView {
 		static var aggregated: Self {
 			._aggregated(
 				[
-					.fungibleAggregation(
+					.page(
 						[
 							.fungibleToken,
 							.nonLiquidAsset,
 							.nonFungibleToken
 						]
 					),
-//					.nonFungibleAggregation(
-//						[
-//							.nonFungibleToken
-//						]
-//					)
 				]
 			)
 		}
@@ -145,11 +205,11 @@ extension WalletDashboardView {
 		static var hybridTokenNla: Self {
 			._hybrid(
 				[
-					.fungibleAggregation(
+					.page(
 						[
 							.fungibleToken,
 						]),
-					.fungibleAggregation(
+					.page(
 						[
 							.nonLiquidAsset
 						]),
@@ -161,12 +221,10 @@ extension WalletDashboardView {
 		static var hybridAllTokenPlusNft: Self {
 			._hybrid(
 				[
-					.fungibleAggregation(
-						[
-							.fungibleToken,
-							.nonLiquidAsset
-						]),
-					.nonFungibleAggregation(
+					.page(
+						.fungibleAndNonLiquid
+					),
+					.page(
 						[
 							.nonFungibleToken
 						]
@@ -179,16 +237,16 @@ extension WalletDashboardView {
 		static var hybridNftNlt: Self {
 			._hybrid(
 				[
-					.fungibleAggregation(
-						[
-							//.fungibleToken,
-							.nonLiquidAsset
-						]),
-					.nonFungibleAggregation(
+					.page(
 						[
 							.nonFungibleToken
 						]
-					)
+					),
+					.page(
+						[
+							.nonLiquidAsset
+						]
+					),
 				]
 			)
 		}
@@ -198,9 +256,9 @@ extension WalletDashboardView {
 		static var discrete: Self {
 			._discrete(
 				[
-					.fungibleAggregation([.fungibleToken]),
-					.nonFungibleAggregation([.nonFungibleToken]),
-					.fungibleAggregation([.nonLiquidAsset]),
+					.page([.fungibleToken]),
+					.page([.nonFungibleToken]),
+					.page([.nonLiquidAsset]),
 				]
 			)
 		}
@@ -208,26 +266,20 @@ extension WalletDashboardView {
 	
 	#warning("refactor AggregatedAssetType")
 	// seems like we only need one case for aggregation
-	enum AggregatedAssetType: Equatable, Hashable, Comparable, Identifiable {
-		case fungibleAggregation(Array<WalletAssetType>)
-		case nonFungibleAggregation(Array<WalletAssetType>)
+	enum AssetPage: Equatable, Hashable, Comparable, Identifiable {
+		case page(Array<WalletAssetType>)
 		
 		var id: String {
 			switch self {
-				case let .nonFungibleAggregation(assetTypes):
-					return assetTypes.description
-				case let .fungibleAggregation(assetTypes):
+				case let .page(assetTypes):
 					return assetTypes.description
 			}
 		}
 		
-		static func < (lhs: AggregatedAssetType, rhs: AggregatedAssetType) -> Bool {
+		static func < (lhs: AssetPage, rhs: AssetPage) -> Bool {
 			switch (lhs, rhs) {
-				case let (.fungibleAggregation(lhsArray), .fungibleAggregation(rhsArray)),
-					let (.nonFungibleAggregation(lhsArray), .nonFungibleAggregation(rhsArray)):
+				case let (.page(lhsArray), .page(rhsArray)):
 					return lhsArray.lexicographicallyPrecedes(rhsArray)
-				case (.fungibleAggregation, .nonFungibleAggregation):
-					return true
 				default:
 					return false
 			}
@@ -235,9 +287,7 @@ extension WalletDashboardView {
 		
 		var wrappedValue: [WalletAssetType] {
 			switch self {
-				case let .nonFungibleAggregation(assetTypes):
-					return assetTypes
-				case let .fungibleAggregation(assetTypes):
+				case let .page(assetTypes):
 					return assetTypes
 			}
 		}
@@ -246,9 +296,13 @@ extension WalletDashboardView {
 }
 
 extension Array where Element == WalletAssetType {
-	var aggregatedFungibleAndNonLiquid: Bool {
+	var isFungibleOrNonLiquid: Bool {
 		let targetArray: Array<Element> = [.nonLiquidAsset, .fungibleToken]
 		return self.contentEqualIgnoringOrder(targetArray)
+	}
+	
+	static var fungibleAndNonLiquid: Self {
+		[.fungibleToken, .nonLiquidAsset,]
 	}
 }
 

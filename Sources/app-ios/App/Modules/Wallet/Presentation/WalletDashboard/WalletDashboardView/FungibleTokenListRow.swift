@@ -1,8 +1,19 @@
 import TonkUI
 
+extension FungibleTokenListRow {
+	final class MockData: ObservableObject {
+		@Published private(set) var randomGainLoseValue: Double = .random(in: 0...15)
+		@Published private(set) var isGain: Bool = .random()
+	}
+}
+
 struct FungibleTokenListRow: View {
 	
 	@Environment(\.locale) private var locale
+	
+	
+	// mock data
+	@StateObject private var mock: MockData = .init()
 	
 	let element: FungibleToken
 	let idx: Int
@@ -45,8 +56,7 @@ struct FungibleTokenListRow: View {
 					HStack(spacing: 0) {
 						if Bool.random() {
 							HStack(spacing: 0) {
-								let isGain: Bool = .random()
-								if isGain {
+								if mock.isGain {
 									Text("+")
 										.font(.montserrat(.subheadline))
 										.foregroundColor(.tonBalanceRelativeGain(forLocale: locale))
@@ -55,13 +65,13 @@ struct FungibleTokenListRow: View {
 										.font(.montserrat(.subheadline))
 										.foregroundColor(.tonBalanceRelativeLose(forLocale: locale))
 								}
-								Text("\(Double.random(in: 0...15).stringDescription(fractionDigits: 2))")
+								Text("\(mock.randomGainLoseValue.stringDescription(fractionDigits: 2))")
 									.font(.montserrat(.subheadline))
-									.foregroundColor(isGain ? .tonBalanceRelativeGain(forLocale: locale) : .tonBalanceRelativeLose(forLocale: locale))
+									.foregroundColor(mock.isGain ? .tonBalanceRelativeGain(forLocale: locale) : .tonBalanceRelativeLose(forLocale: locale))
 								Text("%")
 									.padding(.leading, 3)
 									.font(.montserrat(.subheadline))
-									.foregroundColor(isGain ? .tonBalanceRelativeGain(forLocale: locale) : .tonBalanceRelativeLose(forLocale: locale))
+									.foregroundColor(mock.isGain ? .tonBalanceRelativeGain(forLocale: locale) : .tonBalanceRelativeLose(forLocale: locale))
 							}
 						}
 					}
@@ -87,6 +97,7 @@ struct FungibleTokenListRow: View {
 		}
 		.padding()
 		.background(WalletListRowBackground(isFirst: isFirst, isLast: isLast))
+//		.border(.red)
 		.drawingGroup()
 		.padding(.horizontal)
 	}

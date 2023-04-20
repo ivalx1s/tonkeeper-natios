@@ -15,6 +15,7 @@ extension WalletDashboardView {
 			navbarTitleYOffset: .zero
 		)
 	}
+	
 	class LocalState: ObservableObject {
 		var pipelines: Set<AnyCancellable> = []
 		let contentNameSpace = "walletDashboard"
@@ -27,7 +28,7 @@ extension WalletDashboardView {
 		}
 		
 		@Published private(set) var conditions: Conditions = .default
-		@Published private(set) var navbarHeight: CGFloat = 64
+		private(set) var navbarHeight: CGFloat = 64
 		
 		@Published var pageTabControlSize: CGSize = .zero
 		static var pageTabControlInitialYOrigin: CGFloat = .zero

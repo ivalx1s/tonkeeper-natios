@@ -5,7 +5,8 @@ protocol WalletAsset: Sendable, Identifiable, Equatable, Codable, Hashable {
 	var balance: BaseUnit { get }
 }
 
-struct BaseUnit: Sendable, Equatable, Codable, Hashable {
+struct BaseUnit: Sendable, Equatable, Codable, Hashable, Comparable {
+	
 	let amount: UInt
 	let symbol: String
 	let decimals: UInt
@@ -18,5 +19,9 @@ struct BaseUnit: Sendable, Equatable, Codable, Hashable {
 		self.amount = amount
 		self.symbol = symbol
 		self.decimals = decimals
+	}
+	
+	static func < (lhs: BaseUnit, rhs: BaseUnit) -> Bool {
+		lhs.amount < rhs.amount
 	}
 }

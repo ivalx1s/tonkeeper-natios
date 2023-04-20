@@ -1,3 +1,7 @@
-"fungibleToken" = "Tokens";
-"nonFungibleToken" = "Collectibles";
-"nonLiquidAsset" = "Apps";
+//"fungibleToken" = "Tokens";
+//"nonFungibleToken" = "Collectibles";
+//"nonLiquidAsset" = "Apps";
+
+"fungibleToken" = "Валюты и токены";
+"nonFungibleToken" = "Коллекции";
+"nonLiquidAsset" = "Приложения";

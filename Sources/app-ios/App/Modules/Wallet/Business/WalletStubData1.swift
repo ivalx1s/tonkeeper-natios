@@ -3,6 +3,15 @@
 
 
 extension WalletService {
+	static let _walletHybridNftNltAssets: [any WalletAsset] = [
+		NonLiquidAsset(id: AssetIdentifier(id: "511"), name: "Ethereum 2.0 Staking", description: "Ethereum 2.0 Staking", balance: BaseUnit(amount: 5, symbol: "ETH2", decimals: 18), stubPricePerUnit: 13),
+		NonLiquidAsset(id: AssetIdentifier(id: "512"), name: "Cardano Staking", description: "Cardano Staking", balance: BaseUnit(amount: 100000, symbol: "ADA", decimals: 6), stubPricePerUnit: 24),
+		NonLiquidAsset(id: AssetIdentifier(id: "513"), name: "Ethereum 2.0 Staking", description: "Ethereum 2.0 Staking", balance: BaseUnit(amount: 5, symbol: "ETH2", decimals: 18), stubPricePerUnit: 13),
+		NonLiquidAsset(id: AssetIdentifier(id: "514"), name: "Ethereum 2.0 Staking", description: "Ethereum 2.0 Staking", balance: BaseUnit(amount: 5, symbol: "ETH2", decimals: 18), stubPricePerUnit: 13),
+		NonLiquidAsset(id: AssetIdentifier(id: "515"), name: "Cardano Staking", description: "Cardano Staking", balance: BaseUnit(amount: 100000, symbol: "ADA", decimals: 6), stubPricePerUnit: 24),
+		NonFungibleToken(id: AssetIdentifier(id: "6"), name: "CryptoPunk", balance: BaseUnit(amount: 1, symbol: "CryptoPunk", decimals: 0)),
+		NonFungibleToken(id: AssetIdentifier(id: "37"), name: "Imaginary Art", balance: BaseUnit(amount: 1, symbol: "IMA", decimals: 0)),
+	]
 	
 	static let _walletHybridAssets: [any WalletAsset] = [
 		FungibleToken(

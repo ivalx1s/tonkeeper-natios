@@ -26,12 +26,44 @@ struct WalletDashboardView: View {
 	@State private var longestTabSelectorTextWidth: CGFloat? = 100
 	@State private var tallestTabSelectorTextHeight: CGFloat?
 	
-	@State var longestPageWidth: CGFloat? = 0
+	@State var longestTabWidth: CGFloat? = 0
 	@State var tallestPageHeight: CGFloat? = 0
 	@State private var pageTabSelectorYOriginCollected = false
 	
+	@State private var pageOffset: CGFloat = .zero
+	
+	@State private var activePageIdx: Int?
+	@State private var pageHeight: CGFloat?
+	@State private var tabSelectorIsVisible = false
+	
+	
+	
+	var totalTabsWidth: Binding<CGFloat?> {
+		.init(get: {
+			guard let longestTabWidth else { return .none }
+//			print("longestTabWidth: \(longestTabWidth)")
+			return longestTabWidth * CGFloat(walletDashboardViewState.tokenLayout.asPages.count)
+			
+		}, set: { _ in })
+	}
+	
+	
 	var body: some View {
-		Content()
+	//	Self._printChanges()
+		return Content()
+			.onReceive(walletDashboardViewState.$tokenLayout) { tokenLayout in
+				//withAnimation(.linear(duration: 0.3)) {
+					if tokenLayout == .aggregated {
+						activePageIdx = 0
+					}
+					pageOffset = tokenLayout == .aggregated ? -1*ls.pageTabControlSize.height : 0
+//					print("pageOffset: \(pageOffset)")
+					tabSelectorIsVisible = tokenLayout == .aggregated ? false : true
+				//}
+			}
+			.onAppear {
+				tabSelectorIsVisible = walletDashboardViewState.tokenLayout != .aggregated ? true : false
+			}
 			.safeAreaInset(edge: .top, spacing: 0) {
 				topContent
 			}
@@ -40,7 +72,7 @@ struct WalletDashboardView: View {
 					return
 				}
 				self.longestTabSelectorTextWidth = sizes.map { $0.width }.max()
-				self.tallestTabSelectorTextHeight = sizes.map { $0.height }.max()
+//				self.tallestTabSelectorTextHeight =
 			})
 			.onChange(of: activePageIdx) { idx in
 				// guard let idx else { return }
@@ -49,20 +81,27 @@ struct WalletDashboardView: View {
 				// pageTabControlProxy?.moveTo(idx)
 				// }
 			}
-			.onPreferenceChange(PageTabSelectorSizeKey.self, perform: { sizes in
-				ls.pageTabControlSize = sizes[0]
-			})
 			.onPreferenceChange(PageTabSelectorFrameKey.self, perform: { frames in
 				guard frames.isNotEmpty else { return }
 				if pageTabSelectorYOriginCollected.not {
 					pageTabSelectorYOriginCollected = true
 					LocalState.pageTabControlInitialYOrigin = frames[0].origin.y
+					ls.pageTabControlSize = frames[0].size
 				}
+			})
+			.onPreferenceChange(TabSizeKey.self, perform: { sizes in
+				guard sizes.count > 0 else {
+					return
+				}
+				self.longestTabWidth = sizes.map {
+//					print("width: \($0.width)")
+					return $0.width
+				}.max()
+//				print("longestTabWidth!!!: \(self.longestTabWidth)")
 			})
 	}
 	
-	@State private var activePageIdx: Int?
-	@State private var pageHeight: CGFloat?
+	
 	
 	@ViewBuilder
 	private func Content() -> some View {
@@ -83,45 +122,47 @@ struct WalletDashboardView: View {
 					.padding(.bottom, 32)
 					
 				
-				PageTabControl(walletDashboardViewState.tokenLayout, activePageIdx: $activePageIdx, longestTabSelectorTextWidth: longestTabSelectorTextWidth, pageTabSelectorOffset: pageTabSelectorOffset)
+				PageTabControl(walletDashboardViewState.tokenLayout, activePageIdx: $activePageIdx, longestTabSelectorTextWidth: longestTabSelectorTextWidth, totalTabsWidth: totalTabsWidth, pageTabSelectorOffset: pageTabSelectorOffset)
 					.opacity(ls.conditions.pageTabControlSticked ? 0 : 1)
+					.opacity(tabSelectorIsVisible ? 1 : 0)
 					.disabled(ls.conditions.pageTabControlSticked)
-					.overlay(
-						GeometryReader { proxy in
-							Color.clear.preference(key: PageTabSelectorSizeKey.self, value: [proxy.size])
-						}
-					)
 					.overlay(
 						GeometryReader { proxy in
 							Color.clear.preference(key: PageTabSelectorFrameKey.self, value: [proxy.frame(in: .named(ls.contentNameSpace))])
 						}
 					)
-				
+				 
+				/* // continue experimentation with TabView-based paging behavior instead of HPageView
+				TabView {
+					
+				}
+				.tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+				*/
 				HPageView(alignment: .center, pageWidth: bounds.width, activePageIndex: $activePageIdx) {
-					ForEach(walletDashboardViewState.tokenLayout.asPages) { aggregatedType in
+					ForEach(walletDashboardViewState.tokenLayout.asPages.numbered(startingAt: 0)) { aggregatedType in
 						Color.white.opacity(0.001)
 							.overlay(alignment: .top) {
 								DashboardPage(
-									assetType: aggregatedType,
+									assetType: aggregatedType.element,
 									fungibleTokens: walletDashboardViewState.fungibleTokens,
 									nonFungibleTokens: walletDashboardViewState.nonFungibleTokens,
-									nonLiquidAsset: walletDashboardViewState.nonLiquidAssets
+									nonLiquidAsset: walletDashboardViewState.nonLiquidAssets,
+									pageIdx: aggregatedType.number
 								)
 							}
+							
 					}
 				}
+				.frame(height: tallestPageHeight) // calculate page of each side and update on idx change
+				.offset(y: pageOffset)
 				.onPreferenceChange(PageSizeKey.self, perform: { sizes in
 					guard sizes.count > 0 else {
 						return
 					}
-					self.longestPageWidth = sizes.map { $0.width }.max()
-					
 					if let maxHeight = sizes.map({ $0.height }).max() {
 						self.tallestPageHeight = maxHeight
 					}
 				})
-				.frame(height: tallestPageHeight) // calculate page of each side and update on idx change
-				//.offset(y: walletDashboardViewState.tokenLayout != .aggregated ? 0 : -1*ls.pageTabControlSize.height)
 				
 			}
 			.storingSize(in: ls.rectSubject, onQueue: ls.queue, space: .named(ls.contentNameSpace), logToConsole: false)
@@ -165,17 +206,29 @@ struct WalletDashboardView: View {
 	@ViewBuilder
 	private func WalletActionsControl() -> some View {
 		HStack(alignment: .bottom, spacing: 27) {
-			WalletActionButton(iconName: "icon_buy", actionName: "Buy")
-			WalletActionButton(iconName: "icon_send", actionName: "Send")
-			WalletActionButton(iconName: "icon_receive", actionName: "Receive")
-			WalletActionButton(iconName: "icon_sell", actionName: "Sell")
+			WalletActionButton(iconName: "icon_buy", actionName: "Buy") {
+				await action {
+					WalletSideEffect.addRandomFungibleToken
+				}
+			}
+			WalletActionButton(iconName: "icon_send", actionName: "Send") {
+				
+			}
+			WalletActionButton(iconName: "icon_receive", actionName: "Receive") {
+				
+			}
+			WalletActionButton(iconName: "icon_sell", actionName: "Sell") {
+				await action {
+					WalletSideEffect.deleteRandomFungibleToken
+				}
+			}
 		}
 	}
 	
 	@ViewBuilder
-	private func WalletActionButton(iconName: String, actionName: String) -> some View {
+	private func WalletActionButton(iconName: String, actionName: String, action: @escaping () async -> Void) -> some View {
 		VStack(alignment: .center, spacing: 8) {
-			Button(action: { } ) {
+			AsyncButton(action: action) {
 				Image(iconName)
 			}
 			.buttonStyle(.walletAction)
@@ -190,39 +243,19 @@ struct WalletDashboardView: View {
 
 	@ViewBuilder
 	private func DashboardPage(
-		assetType: AggregatedAssetType,
+		assetType: AssetPage,
 		fungibleTokens: [Numbered<FungibleToken>],
 		nonFungibleTokens: [Numbered<NonFungibleToken>],
-		nonLiquidAsset: [Numbered<NonLiquidAsset>]
+		nonLiquidAsset: [Numbered<NonLiquidAsset>],
+		pageIdx: Int
 	) -> some View {
 		switch assetType {
-			case let .fungibleAggregation(walletAssetTypes):
+			case let .page(walletAssetTypes):
 				VStack(spacing: 32) {
 					ForEach(walletAssetTypes) { type in
 						switch type {
 							case .fungibleToken:
 								FungibleTokenList(tokens: fungibleTokens)
-//									.border(.white)
-							case .nonFungibleToken:
-								NonFungibleTokenGrid(tokens: nonFungibleTokens)
-//									.border(.red)
-							case .nonLiquidAsset:
-								NonLiquidAssetList(assets: nonLiquidAsset)
-//									.border(.green)
-						}
-					}
-				}
-				.overlay(
-					GeometryReader { proxy in
-						Color.clear.preference(key: PageSizeKey.self, value: [proxy.size])
-					}
-				)
-			case let .nonFungibleAggregation(walletAssetTypes):
-				VStack {
-					ForEach(walletAssetTypes) { type in
-						switch type {
-							case .fungibleToken:
-								FungibleTokenList(tokens: fungibleTokens)
 							case .nonFungibleToken:
 								NonFungibleTokenGrid(tokens: nonFungibleTokens)
 							case .nonLiquidAsset:
@@ -230,6 +263,7 @@ struct WalletDashboardView: View {
 						}
 					}
 				}
+				.id(pageIdx)
 				.overlay(
 					GeometryReader { proxy in
 						Color.clear.preference(key: PageSizeKey.self, value: [proxy.size])
@@ -243,11 +277,11 @@ struct WalletDashboardView: View {
 		if tokens.count > 0 {
 			NftGrid(nfts: tokens)
 				.padding(.horizontal)
-//				.overlay(
-//					GeometryReader { proxy in
-//						Color.clear.preference(key: PageSizeKey.self, value: [proxy.size])
-//					}
-//				)
+				.overlay(
+					GeometryReader { proxy in
+						Color.clear.preference(key: PageSizeKey.self, value: [proxy.size])
+					}
+				)
 		}
 	}
 	
@@ -256,20 +290,21 @@ struct WalletDashboardView: View {
 		if tokens.count > 0 {
 			let lastElementIdx = tokens.count - 1
 			LazyVStack(spacing: 0) {
-				ForEach(tokens) { tuple in
+				ForEach(tokens, id: \.element.id) { tuple in
 					FungibleTokenListRow(
 						element: tuple.element,
 						idx: tuple.number,
 						isFirst: tuple.number == 0,
 						isLast: tuple.number == lastElementIdx
 					)
+					.id(tuple.id)
+					// debug view rerenders
+//					.overlay(
+//						Text("\(Int.random(in: 1...1000))")
+//							.font(.largeTitle)
+//					)
 				}
 			}
-//			.overlay(
-//				GeometryReader { proxy in
-//					Color.clear.preference(key: PageSizeKey.self, value: [proxy.size])
-//				}
-//			)
 		}
 	}
 
@@ -331,7 +366,7 @@ struct WalletDashboardView: View {
 			.overlay(alignment: .bottom) {
 				VStack(spacing: 0) {
 					if walletDashboardViewState.tokenLayout != .aggregated {
-						PageTabControl(walletDashboardViewState.tokenLayout, activePageIdx: $activePageIdx, longestTabSelectorTextWidth: longestTabSelectorTextWidth, pageTabSelectorOffset: pageTabSelectorOffset)
+						PageTabControl(walletDashboardViewState.tokenLayout, activePageIdx: $activePageIdx, longestTabSelectorTextWidth: longestTabSelectorTextWidth, totalTabsWidth: totalTabsWidth, pageTabSelectorOffset: pageTabSelectorOffset)
 							.offset(y: ls.conditions.pageTabControlYOffset)
 							.opacity(ls.conditions.pageTabControlSticked ? 1 : 0)
 							.disabled(!ls.conditions.pageTabControlSticked)
@@ -392,7 +427,7 @@ struct WalletDashboardView: View {
 	private func PageTabControlInNavbar() -> some View {
 		VStack(spacing: 0) {
 			if walletDashboardViewState.tokenLayout != .aggregated {
-				PageTabControl(walletDashboardViewState.tokenLayout, activePageIdx: $activePageIdx, longestTabSelectorTextWidth: longestTabSelectorTextWidth, pageTabSelectorOffset: pageTabSelectorOffset)
+				PageTabControl(walletDashboardViewState.tokenLayout, activePageIdx: $activePageIdx, longestTabSelectorTextWidth: longestTabSelectorTextWidth, totalTabsWidth: totalTabsWidth, pageTabSelectorOffset: pageTabSelectorOffset)
 					.offset(y: ls.conditions.pageTabControlYOffset)
 					.opacity(ls.conditions.pageTabControlSticked ? 1 : 0)
 					.disabled(!ls.conditions.pageTabControlSticked)
