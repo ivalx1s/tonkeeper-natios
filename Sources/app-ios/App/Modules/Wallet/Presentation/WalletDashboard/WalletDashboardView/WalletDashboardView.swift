@@ -32,9 +32,10 @@ struct WalletDashboardView: View {
 	
 	@State private var pageOffset: CGFloat = .zero
 	
-	@State private var activePageIdx: Int?
+	@State private var activePageIdx: Int? = 0
 	@State private var pageHeight: CGFloat?
 	@State private var tabSelectorIsVisible = false
+	@State private var scrollProxy: ScrollViewProxy?
 	
 	
 	
@@ -99,6 +100,14 @@ struct WalletDashboardView: View {
 				}.max()
 //				print("longestTabWidth!!!: \(self.longestTabWidth)")
 			})
+			.onChange(of: activePageIdx) { idx in
+				guard ls.conditions.pageTabControlSticked else { return }
+				delay(for: 0.7) {
+					withAnimation(.easeInOut(duration: 0.5)) {
+						scrollProxy?.scrollTo("PageTabControlBottomPadding", anchor: .top)
+					}
+				}
+			}
 	}
 	
 	
@@ -106,66 +115,79 @@ struct WalletDashboardView: View {
 	@ViewBuilder
 	private func Content() -> some View {
 		ScrollView([.vertical], showsIndicators: false) {
-			VStack(spacing: 0) {
-				// only used to read coordinates of scroll view's first element
-				Color.clear
-					.frame(height: 0)
-				
-				
-				WalletBalance()
-					.padding(.bottom, 34)
-					.padding(.top, 28)
-				
-				
-				
-				WalletActionsControl()
-					.padding(.bottom, 32)
+			ScrollViewReader { proxy in
+				VStack(spacing: 0) {
+					// only used to read coordinates of scroll view's first element
+					Color.clear
+						.frame(height: 0)
 					
-				
-				PageTabControl(walletDashboardViewState.tokenLayout, activePageIdx: $activePageIdx, longestTabSelectorTextWidth: longestTabSelectorTextWidth, totalTabsWidth: totalTabsWidth, pageTabSelectorOffset: pageTabSelectorOffset)
-					.opacity(ls.conditions.pageTabControlSticked ? 0 : 1)
-					.opacity(tabSelectorIsVisible ? 1 : 0)
-					.disabled(ls.conditions.pageTabControlSticked)
-					.overlay(
-						GeometryReader { proxy in
-							Color.clear.preference(key: PageTabSelectorFrameKey.self, value: [proxy.frame(in: .named(ls.contentNameSpace))])
-						}
-					)
-				 
-				/* // continue experimentation with TabView-based paging behavior instead of HPageView
-				TabView {
 					
-				}
-				.tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-				*/
-				HPageView(alignment: .center, pageWidth: bounds.width, activePageIndex: $activePageIdx) {
-					ForEach(walletDashboardViewState.tokenLayout.asPages.numbered(startingAt: 0)) { aggregatedType in
-						Color.white.opacity(0.001)
-							.overlay(alignment: .top) {
-								DashboardPage(
-									assetType: aggregatedType.element,
-									fungibleTokens: walletDashboardViewState.fungibleTokens,
-									nonFungibleTokens: walletDashboardViewState.nonFungibleTokens,
-									nonLiquidAsset: walletDashboardViewState.nonLiquidAssets,
-									pageIdx: aggregatedType.number
-								)
+					WalletBalance()
+						.padding(.bottom, 34)
+						.padding(.top, 28)
+					
+					
+					
+					WalletActionsControl()
+						.padding(.bottom, 32)
+					
+					
+					PageTabControl(walletDashboardViewState.tokenLayout, activePageIdx: $activePageIdx, longestTabSelectorTextWidth: longestTabSelectorTextWidth, totalTabsWidth: totalTabsWidth, pageTabSelectorOffset: pageTabSelectorOffset)
+						.opacity(ls.conditions.pageTabControlSticked ? 0 : 1)
+						.opacity(tabSelectorIsVisible ? 1 : 0)
+						.disabled(ls.conditions.pageTabControlSticked)
+						.overlay(
+							GeometryReader { proxy in
+								Color.clear.preference(key: PageTabSelectorFrameKey.self, value: [proxy.frame(in: .named(ls.contentNameSpace))])
 							}
-							
+						)
+					
+					/* // continue experimentation with TabView-based paging behavior instead of HPageView
+					 TabView {
+					 
+					 }
+					 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+					 */
+					
+					Color.clear.frame(height: 16)
+						.id("PageTabControlBottomPadding")
+					
+					HPageView(alignment: .center, pageWidth: bounds.width, activePageIndex: $activePageIdx) {
+						ForEach(walletDashboardViewState.tokenLayout.asPages.numbered(startingAt: 0)) { aggregatedType in
+							Color.white.opacity(0.001)
+								.overlay(alignment: .top) {
+									DashboardPage(
+										assetType: aggregatedType.element,
+										fungibleTokens: walletDashboardViewState.fungibleTokens,
+										nonFungibleTokens: walletDashboardViewState.nonFungibleTokens,
+										nonLiquidAsset: walletDashboardViewState.nonLiquidAssets,
+										pageIdx: aggregatedType.number
+									)
+								}
+						}
+					}
+					.id("DashboardPager")
+					.frame(height: tallestPageHeight) // calculate page of each side and update on idx change
+					.offset(y: pageOffset)
+					.offset(y: 0)
+					.onPreferenceChange(PageSizeKey.self, perform: { sizes in
+						guard sizes.count > 0 else {
+							return
+						}
+						if let maxHeight = sizes.map({ $0.height }).max() {
+							self.tallestPageHeight = maxHeight
+						}
+					})
+					
+				}
+				.storingSize(in: ls.rectSubject, onQueue: ls.queue, space: .named(ls.contentNameSpace), logToConsole: false)
+				.onAppear {
+					DispatchQueue.main.async {
+						scrollProxy = proxy
 					}
 				}
-				.frame(height: tallestPageHeight) // calculate page of each side and update on idx change
-				.offset(y: pageOffset)
-				.onPreferenceChange(PageSizeKey.self, perform: { sizes in
-					guard sizes.count > 0 else {
-						return
-					}
-					if let maxHeight = sizes.map({ $0.height }).max() {
-						self.tallestPageHeight = maxHeight
-					}
-				})
-				
 			}
-			.storingSize(in: ls.rectSubject, onQueue: ls.queue, space: .named(ls.contentNameSpace), logToConsole: false)
+			
 		}
 		
 
