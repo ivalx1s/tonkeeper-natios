@@ -319,12 +319,7 @@ struct WalletDashboardView: View {
 						isLast: tuple.number == lastElementIdx
 					)
 					.id(tuple.id)
-					.onAppear {
-						if lastElementIdx == tuple.number {
-							print("lastAppeared")
-						}
-					}
-					// debug view rerenders
+					// debug view re-renders
 //					.overlay(
 //						Text("\(Int.random(in: 1...1000))")
 //							.font(.largeTitle)

@@ -22,8 +22,8 @@ struct NonLiquidTokenListRow: View {
 		isLast: Bool
 	) -> some View {
 		HStack(spacing: 0) {
-			Circle()
-				.fill(Color.tonSecondarySystemBackground)
+			Image(element.id.id)
+				.resizable()
 				.frame(width: 44, height: 44)
 			VStack(alignment: .leading, spacing: 4) {
 				Text(element.name)
