@@ -73,7 +73,7 @@ extension WalletDashboardView {
 			switch yOrigin {
 				case ...(-213):
 					let opacity = 1/abs(yOrigin)
-				//	print("yOrigin: \(yOrigin), opacity: \(opacity)")
+					print("yOrigin: \(yOrigin), opacity: \(opacity)")
 					return 1
 				default:
 					return 1

@@ -77,11 +77,30 @@ struct SettingsView: View {
 					WalletSideEffect.deleteRandomNonLiquidAsset
 				}
 			})
-				
-			Button(action: {
-				AppHelper.openAppSettings()
-			}) {
-				Text("Localization Settings")
+			HStack {
+				VStack(alignment: .leading, spacing: 32) {
+					Button(action: {
+						AppHelper.openAppSettings()
+					}) {
+						Text("Localization Settings")
+					}
+					AsyncButton(action: {
+						await action {
+							WalletSideEffect.addAllAssets
+						}
+					}) {
+						Text("Add all stub assets")
+					}
+					
+					AsyncButton(action: {
+						await action {
+							WalletSideEffect.deleteAllAssets
+						}
+					}) {
+						Text("Delete all assets")
+					}
+					
+				}
 			}
 			.padding(.top)
 			Spacer()

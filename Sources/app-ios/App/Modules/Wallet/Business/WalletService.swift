@@ -15,6 +15,10 @@ actor WalletAssetsStub {
 		self.assets.remove(at: idx)
 	}
 	
+	func removeAll() {
+		self.assets = []
+	}
+	
 	func append(contentsOf assets: [any WalletAsset]) {
 		self.assets.append(contentsOf: assets)
 	}
@@ -73,10 +77,13 @@ protocol IWalletService {
 	func loadStubDataInBuffer() async
 	func assets() async -> [any WalletAsset]
 	func addRandomAsset(ofType type: WalletAssetType) async
+	func addAllStubAssets() async
+	func deleteAllAssets() async
 	func deleteRandomAsset(of assetType: WalletAssetType) async
 }
 
 final class WalletService: IWalletService {
+	
 	
 	private let walletAssets: WalletAssetsStub = .init()
 	private let walletAssetsBuffer: WalletAssetsStub = .init()
@@ -92,7 +99,7 @@ final class WalletService: IWalletService {
 	}
 	
 	func loadStubDataInBuffer() async {
-		let stubData0 = try! JSONDecoder().decode([FungibleToken].self, from:stubData0.data(using: .utf8)!)
+//		let stubData0 = try! JSONDecoder().decode([FungibleToken].self, from:stubData0.data(using: .utf8)!)
 		let fungibleTokens = try! JSONDecoder().decode([FungibleToken].self, from: fungibleTokens.data(using: .utf8)!)
 		let nonLiquidAsset = Self._walletNonLiquidAssetsBuffer
 		let nftAssets = Self._walletNftAssetsBuffer
@@ -112,6 +119,13 @@ final class WalletService: IWalletService {
 				await walletAssetsBuffer.remove(at: idx)
 			}
 		}
-		
+	}
+	
+	func addAllStubAssets() async {
+		await walletAssets.append(contentsOf: await walletAssetsBuffer.assets)
+	}
+	
+	func deleteAllAssets() async {
+		await walletAssets.removeAll()
 	}
 }

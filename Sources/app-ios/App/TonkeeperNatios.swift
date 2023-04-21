@@ -131,6 +131,14 @@ struct TonkeeperNatios: App {
 			"loading more stub wallet assets"
 		}
 		
+		/*
+		performAsync(.serially, withPriority: .medium) {
+			WalletSideEffect.addAllAssets
+		} label: {
+			"adding all stub assets in state"
+		}
+		 */
+		
     }
 	
 	

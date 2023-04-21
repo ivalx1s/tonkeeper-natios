@@ -31,6 +31,10 @@ final class WalletSaga: IWalletSaga {
 				await addRandomNonLiquidAsset()
 			case .deleteRandomNonLiquidAsset:
 				await deleteRandomNonLiquidAsset()
+			case .addAllAssets:
+				await addAllAssets()
+			case .deleteAllAssets:
+				await removeAllAssets()
 			case .none:
 				break
 		}
@@ -77,6 +81,17 @@ final class WalletSaga: IWalletSaga {
 	
 	private func loadStubDataInBuffer() async {
 		await walletSvc.loadStubDataInBuffer()
+	}
+	
+	private func addAllAssets() async {
+		await loadStubDataInBuffer()
+		await walletSvc.addAllStubAssets()
+		await reloadWalletAssets()
+	}
+	
+	private func removeAllAssets() async {
+		await walletSvc.deleteAllAssets()
+		await reloadWalletAssets()
 	}
 	
 	private func reloadWalletAssets() async {
