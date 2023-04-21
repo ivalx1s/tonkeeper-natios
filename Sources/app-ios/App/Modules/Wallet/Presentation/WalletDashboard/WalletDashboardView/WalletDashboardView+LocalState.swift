@@ -19,7 +19,7 @@ extension WalletDashboardView {
 	class LocalState: ObservableObject {
 		var pipelines: Set<AnyCancellable> = []
 		let contentNameSpace = "walletDashboard"
-		let queue = DispatchQueue(label: "viewFrameReaderQueue", qos: .default)
+		let queue = DispatchQueue(label: "viewFrameReaderQueue", qos: .userInteractive)
 	
 		
 		let rectSubject = PassthroughSubject<CGRect, Never>()
@@ -48,6 +48,7 @@ extension WalletDashboardView {
 					return yOrigin
 				}
 				.map { Self.roundToPrecision($0, precision: 1) }
+				.removeDuplicates()
 				.map {
 					Conditions(
 						navBarVisibility: Self.checkNavBarBgVisibilityCondition($0),
@@ -57,6 +58,7 @@ extension WalletDashboardView {
 					)
 				}
 				.removeDuplicates()
+				.throttle(for: 0.016, scheduler: DispatchQueue.main, latest: false)
 				.receive(on: DispatchQueue.main)
 				.sink { [weak self] (conditions: Conditions) in
 					self?.conditions = conditions

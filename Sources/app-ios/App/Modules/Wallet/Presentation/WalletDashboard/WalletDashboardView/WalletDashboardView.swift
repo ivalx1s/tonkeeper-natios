@@ -33,7 +33,6 @@ struct WalletDashboardView: View {
 	@State private var pageOffset: CGFloat = .zero
 	
 	@State private var activePageIdx: Int? = 0
-	@State private var pageHeight: CGFloat?
 	@State private var tabSelectorIsVisible = false
 	@State private var scrollProxy: ScrollViewProxy?
 	
@@ -102,8 +101,8 @@ struct WalletDashboardView: View {
 			})
 			.onChange(of: activePageIdx) { idx in
 				guard ls.conditions.pageTabControlSticked else { return }
-				delay(for: 0.7) {
-					withAnimation(.easeInOut(duration: 0.5)) {
+				delay(for: 0.2) {
+					withAnimation(.easeInOut(duration: 0.3)) {
 						scrollProxy?.scrollTo("PageTabControlBottomPadding", anchor: .top)
 					}
 				}
@@ -188,22 +187,7 @@ struct WalletDashboardView: View {
 			}
 			
 		}
-		
-
 		.coordinateSpace(name: ls.contentNameSpace)
-		.onChange(of: activePageIdx) { newIdx in
-			// used for debugging, to be deleted
-			guard let newIdx else { return }
-			pageHeight = 1000
-			switch newIdx {
-				case 0:
-					break
-				case 1:
-					break
-				default:
-					break
-			}
-		}
 	}
 	
 	@ViewBuilder

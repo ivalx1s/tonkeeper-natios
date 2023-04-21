@@ -35,6 +35,7 @@ extension WalletDashboardView {
 			VStack(spacing: 0) {
 				if totalTabsWidth ?? 0 < bounds.width {
 					StaticSelector(activePageIdx: $activePageIdx, assetPages: tokenLayout.asPages.numbered(startingAt: 0), animationNamespace: pageTabControl)
+						.drawingGroup()
 						.onAppear {
 //							print("totalTabsWidth < bounds.width \(totalTabsWidth ?? 0 < bounds.width); \(totalTabsWidth) \(bounds.width)")
 						}
