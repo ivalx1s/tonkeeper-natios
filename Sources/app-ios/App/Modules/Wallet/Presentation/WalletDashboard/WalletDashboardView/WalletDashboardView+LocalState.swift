@@ -7,12 +7,14 @@ extension WalletDashboardView {
 		let pageTabControlSticked: Bool
 		let pageTabControlYOffset: CGFloat
 		let navbarTitleYOffset: CGFloat
+		let navbarOpacity: CGFloat
 		
 		static var `default`: Self = .init(
 			navBarVisibility: true,
 			pageTabControlSticked: false,
 			pageTabControlYOffset: .zero,
-			navbarTitleYOffset: .zero
+			navbarTitleYOffset: .zero,
+			navbarOpacity: 1
 		)
 	}
 	
@@ -54,7 +56,8 @@ extension WalletDashboardView {
 						navBarVisibility: Self.checkNavBarBgVisibilityCondition($0),
 						pageTabControlSticked: Self.checkPageTabControlStickedCondition($0),
 						pageTabControlYOffset: Self.checkPageTabControlYOffset($0),
-						navbarTitleYOffset: Self.checkNavbarTitleYOffsetCondition($0)
+						navbarTitleYOffset: Self.checkNavbarTitleYOffsetCondition($0),
+						navbarOpacity: Self.checkNavbarOpacityCondition($0)
 					)
 				}
 				.removeDuplicates()
@@ -64,6 +67,17 @@ extension WalletDashboardView {
 					self?.conditions = conditions
 				}
 				.store(in: &pipelines)
+		}
+		
+		private static func checkNavbarOpacityCondition(_ yOrigin: CGFloat) -> CGFloat {
+			switch yOrigin {
+				case ...(-213):
+					let opacity = 1/abs(yOrigin)
+					print("yOrigin: \(yOrigin), opacity: \(opacity)")
+					return 1
+				default:
+					return 1
+			}
 		}
 		
 		private static func checkNavBarBgVisibilityCondition(_ yOrigin: CGFloat) -> Bool {
@@ -92,7 +106,7 @@ extension WalletDashboardView {
 			if yOrigin < (-1*Self.pageTabControlInitialYOrigin) {
 				let offset = yOrigin + Self.pageTabControlInitialYOrigin
 				
-				return max(offset*2, -200)
+				return max(offset, -200)
 			} else {
 				return .zero
 			}

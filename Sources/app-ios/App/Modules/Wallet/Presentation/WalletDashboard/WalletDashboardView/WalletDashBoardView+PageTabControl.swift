@@ -157,7 +157,7 @@ extension WalletDashboardView {
 		
 		var body: some View {
 			
-			HPageView(alignment: .leading, pageWidth: longestTabSelectorTextWidth, spacing: 0, activePageIndex: $activePageIdx) {
+			HPageView(alignment: .center, pageWidth: longestTabSelectorTextWidth, spacing: 0, activePageIndex: $activePageIdx) {
 				ForEach(assetPages) { aggregatedType in
 					VStack(spacing: 0) {
 						switch aggregatedType.element {
