@@ -153,16 +153,16 @@ struct WalletDashboardView: View {
 				
 					HPageView(alignment: .center, pageWidth: bounds.width, activePageIndex: $activePageIdx) {
 						ForEach(walletDashboardViewState.tokenLayout.asPages.numbered(startingAt: 0)) { aggregatedType in
-							Color.white.opacity(0.001)
-								.overlay(alignment: .top) {
-									DashboardPage(
-										assetType: aggregatedType.element,
-										fungibleTokens: walletDashboardViewState.fungibleTokens,
-										nonFungibleTokens: walletDashboardViewState.nonFungibleTokens,
-										nonLiquidAsset: walletDashboardViewState.nonLiquidAssets,
-										pageIdx: aggregatedType.number
-									)
-								}
+							VStack(spacing: 0){
+								DashboardPage(
+									assetType: aggregatedType.element,
+									fungibleTokens: walletDashboardViewState.fungibleTokens,
+									nonFungibleTokens: walletDashboardViewState.nonFungibleTokens,
+									nonLiquidAsset: walletDashboardViewState.nonLiquidAssets,
+									pageIdx: aggregatedType.number
+								)
+								Spacer()
+							}
 						}
 					}
 					.id("DashboardPager")
