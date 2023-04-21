@@ -49,7 +49,7 @@ extension WalletDashboardView {
 					let yOrigin = $0.origin.y
 					return yOrigin
 				}
-				.map { Self.roundToPrecision($0, precision: 1) }
+				.map { Self.roundToPrecision($0, precision: 2) }
 				.removeDuplicates()
 				.map {
 					Conditions(
@@ -73,7 +73,7 @@ extension WalletDashboardView {
 			switch yOrigin {
 				case ...(-213):
 					let opacity = 1/abs(yOrigin)
-					print("yOrigin: \(yOrigin), opacity: \(opacity)")
+				//	print("yOrigin: \(yOrigin), opacity: \(opacity)")
 					return 1
 				default:
 					return 1
@@ -99,6 +99,8 @@ extension WalletDashboardView {
 		}
 		
 		private static func checkPageTabControlStickedCondition(_ yOrigin: CGFloat) -> Bool {
+			guard yOrigin < 0 else { return false }
+			let shouldBeSticked = yOrigin <= (-1*Self.pageTabControlInitialYOrigin)
 			return yOrigin <= (-1*Self.pageTabControlInitialYOrigin)
 		}
 		
