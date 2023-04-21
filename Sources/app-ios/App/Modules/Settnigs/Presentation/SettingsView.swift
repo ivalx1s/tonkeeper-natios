@@ -74,7 +74,7 @@ struct SettingsView: View {
 				}
 			}, decrementAction: {
 				await action {
-					WalletSideEffect.deleteRandomNonFungibleToken
+					WalletSideEffect.deleteRandomNonLiquidAsset
 				}
 			})
 				
