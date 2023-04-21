@@ -31,11 +31,11 @@ struct NftGrid: View {
 		@ViewBuilder
 		private func NonFungibleTokenCell(nft: NonFungibleToken) -> some View {
 			VStack(spacing: 0) {
-				Color.gray
-					//.opacity(0.6)
+				Image(nft.id.id)
+					.resizable()
+					.frame(width: 114, height: 114)
 					.cornerRadius(20, corners: .topLeft)
 					.cornerRadius(20, corners: .topRight)
-					.frame(width: 114, height: 114)
 				Color.tonSystemGroupedBackground
 					.frame(width: 114, height: 52)
 					.cornerRadius(20, corners: .bottomLeft)
