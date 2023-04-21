@@ -26,11 +26,11 @@ extension BottomNavigation {
                     .CombineLatest4($contentFrame, $tabbarFrame, $screenBounds, $safeAreaInsets)
                     .map { content, tabbar, screenBounds, screenInsets in
 
-//                        print("content: \(content)")
-//                        print("tabbar: \(tabbar)")
-//                        print("screenBounds: \(screenBounds)")
-//                        print("insets: \(screenInsets)")
-                        -1 * content.origin.y
+                        print("content: \(content)")
+                        print("tabbar: \(tabbar)")
+                        print("screenBounds: \(screenBounds)")
+                        print("insets: \(screenInsets)")
+                       return  -1 * content.origin.y
                                 + screenBounds.height
                                 - tabbar.height
                                 - screenInsets.top - screenInsets.bottom
@@ -58,44 +58,46 @@ struct BottomNavigation: View {
                 .onAppear {
 					bindScreenSize()
 				}
+//				.border(.red, width: 1/3)
     }
 
-    private var content: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 0) {
-                ForEach(props.items) { item in
-                    let isSelected = item.id == props.activeItemId
-                    AsyncButton(action: item.onSelect) {
-						HStack(spacing: 0) {
-							Spacer()
-							VStack(spacing: 0) {
-								ZStack {
-									Image(item.icon)
-										.resizable()
-									if let icon_secondary = item.icon_secondary {
-										Image(icon_secondary)
-									}
-								}
-									.frame(width: 23, height: 23)
-									.grayscale(isSelected ? 0 : 1)
-									.foregroundColor(isSelected ? Color.tonBlue : Color.tonSecondaryLabel)
-									.padding(.bottom, 8)
-                                    .animation(.easeInOut(duration: 0.15), value: isSelected)
-                                Text(LocalizedStringKey(item.label))
-									.font(.montserrat(.footnote))
-									.foregroundColor(isSelected ? Color.tonBlue : .tonSecondaryLabel)
-							}
-							Spacer()
-						}
-						.contentShape(Rectangle())
-                    }
+	private var content: some View {
+		HStack(alignment: .bottom, spacing: 0) {
+			ForEach(props.items) { item in
+				let isSelected = item.id == props.activeItemId
+				HStack(spacing: 0) {
+					Spacer()
+					AsyncButton(action: item.onSelect) {
+						TabItemView(item, isSelected: isSelected)
+					}
 					.buttonStyle(TabViewItemButtonStyle())
-
-                }
-                Spacer(minLength: 1)
-            }.padding(.top, 8)
-        }
-    }
+					Spacer(minLength: 0)
+				}
+			}
+		}
+		.extendingContent(.horizontal)
+		.frame(height: .navbarHeight)
+	}
+	
+	@ViewBuilder
+	private func TabItemView(_ item: Item, isSelected: Bool) -> some View {
+		VStack(spacing: 0) {
+			Spacer()
+			Image(item.icon)
+				.resizable()
+				.frame(width: 23, height: 23)
+				.foregroundColor(isSelected ? Color.tonBlue : Color.tonSecondaryLabel)
+				.grayscale(isSelected ? 0 : 1)
+				.padding(.bottom, 4)
+				.scaleEffect(1.2)
+				.animation(.easeInOut(duration: 0.15), value: isSelected)
+			Text(LocalizedStringKey(item.label))
+				.font(.montserrat(.footnote))
+				.foregroundColor(isSelected ? Color.tonBlue : .tonSecondaryLabel)
+		}
+		.contentShape(Rectangle())
+//		.border(.green, width: 1/3)
+	}
 
     @ViewBuilder
     private var bg: some View {
@@ -113,4 +115,10 @@ struct BottomNavigation: View {
         ls.screenBounds = bounds
         ls.safeAreaInsets = safeAreaEdgeInsets
     }
+}
+
+extension CGFloat {
+	static var navbarHeight: CGFloat {
+		50
+	}
 }

@@ -12,7 +12,6 @@ extension BottomNavigation {
         let id: String
         let label: String
         let icon: String
-		let icon_secondary: String?
         let iconScaleFactor: CGFloat
         let onSelect: () async -> ()
     }

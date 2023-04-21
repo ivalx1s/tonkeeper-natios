@@ -39,30 +39,15 @@ enum MainPage: Equatable, Identifiable {
 	var icon: String {
 		switch self {
 			case .wallet:
-				return "icon_wallet_foreground"
+				return "icon_wallet"
 			case .settings:
 				return "icon_settings"
 			case .undefined:
 				return "undefined"
 			case .activity:
-				return "icon_activity_foreground"
+				return "icon_activity"
 			case .browser:
 				return "icon_browser"
-		}
-	}
-	
-	var icon_secondary: String? {
-		switch self {
-			case .wallet:
-				return "icon_wallet_background"
-			case .settings:
-				return nil
-			case .undefined:
-				return nil
-			case .activity:
-				return "icon_activity_background"
-			case .browser:
-				return nil
 		}
 	}
 	

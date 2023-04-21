@@ -170,7 +170,7 @@ extension WalletDashboardView {
 											GeometryReader { proxy in
 												Color.clear.preference(key: TabSizeKey.self, value: [proxy.size])
 													.onAppear {
-														print("proxy.size.width: \(proxy.size.width)")
+//														print("proxy.size.width: \(proxy.size.width)")
 													}
 											}
 										)
@@ -182,7 +182,7 @@ extension WalletDashboardView {
 											GeometryReader { proxy in
 												Color.clear.preference(key: TabSizeKey.self, value: [proxy.size])
 													.onAppear {
-														print("proxy.size.width: \(proxy.size.width)")
+//														print("proxy.size.width: \(proxy.size.width)")
 													}
 											}
 										)

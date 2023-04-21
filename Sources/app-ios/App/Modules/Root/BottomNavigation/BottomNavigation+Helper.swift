@@ -6,7 +6,6 @@ extension BottomNavigation {
 			id: page.id,
 			label: page.label,
 			icon: page.icon,
-			icon_secondary: page.icon_secondary,
 			iconScaleFactor: page.iconScaleFactor,
 			onSelect: {
 				await action {
