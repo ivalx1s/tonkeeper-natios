@@ -8,13 +8,15 @@ extension WalletDashboardView {
 		let pageTabControlYOffset: CGFloat
 		let navbarTitleYOffset: CGFloat
 		let navbarOpacity: CGFloat
+		let pageNavbarContact: Bool
 		
 		static var `default`: Self = .init(
 			navBarVisibility: false,
 			pageTabControlSticked: false,
 			pageTabControlYOffset: .zero,
 			navbarTitleYOffset: .zero,
-			navbarOpacity: 1
+			navbarOpacity: 1,
+			pageNavbarContact: false
 		)
 	}
 	
@@ -34,7 +36,7 @@ extension WalletDashboardView {
 		
 		@Published var pageTabControlSize: CGSize = .zero
 		static var pageTabControlInitialYOrigin: CGFloat = .zero
-		
+		static var pageTabControlBottomPaddingInitialYOrigin: CGFloat = .zero
 		
 		init() {
 			bindFields()
@@ -52,12 +54,13 @@ extension WalletDashboardView {
 				.map { Self.roundToPrecision($0, precision: 2) }
 				.removeDuplicates()
 				.map {
-					Conditions(
+					return Conditions(
 						navBarVisibility: Self.checkNavBarBgVisibilityCondition($0),
 						pageTabControlSticked: Self.checkPageTabControlStickedCondition($0),
 						pageTabControlYOffset: Self.checkPageTabControlYOffset($0),
 						navbarTitleYOffset: Self.checkNavbarTitleYOffsetCondition($0),
-						navbarOpacity: Self.checkNavbarOpacityCondition($0)
+						navbarOpacity: Self.checkNavbarOpacityCondition($0),
+						pageNavbarContact: Self.checkPageNavbarContactCondition($0)
 					)
 				}
 				.removeDuplicates()
@@ -96,6 +99,16 @@ extension WalletDashboardView {
 				return max(offset, .dashboardNavbarPageControlStickedOffset)
 			} else {
 				return .zero
+			}
+		}
+		
+		private static func checkPageNavbarContactCondition(_ yOrigin: CGFloat) -> Bool {
+			if yOrigin < (-1*Self.pageTabControlBottomPaddingInitialYOrigin) {
+				let offset = yOrigin + Self.pageTabControlBottomPaddingInitialYOrigin
+				print(offset < -1)
+				return offset < -1
+			} else {
+				return false
 			}
 		}
 		

@@ -29,6 +29,7 @@ struct WalletDashboardView: View {
 	@State var longestTabWidth: CGFloat? = 0
 	@State var tallestPageHeight: CGFloat = 0
 	@State private var pageTabSelectorYOriginCollected = false
+	@State private var pageTabSelectorBottomPaddingYOriginCollected = false
 	
 	@State private var pageOffset: CGFloat = .zero
 	
@@ -87,6 +88,13 @@ struct WalletDashboardView: View {
 					pageTabSelectorYOriginCollected = true
 					LocalState.pageTabControlInitialYOrigin = frames[0].origin.y
 					ls.pageTabControlSize = frames[0].size
+				}
+			})
+			.onPreferenceChange(PageTabControlBottomPaddingFrameKey.self, perform: { frames in
+				guard frames.isNotEmpty else { return }
+				if pageTabSelectorBottomPaddingYOriginCollected.not {
+					pageTabSelectorBottomPaddingYOriginCollected = true
+					LocalState.pageTabControlBottomPaddingInitialYOrigin = frames[0].origin.y
 				}
 			})
 			.onPreferenceChange(TabSizeKey.self, perform: { sizes in
@@ -148,6 +156,11 @@ struct WalletDashboardView: View {
 					 */
 					Color.clear
 						.frame(height: 16)
+						.overlay(
+							GeometryReader { proxy in
+								Color.clear.preference(key: PageTabControlBottomPaddingFrameKey.self, value: [proxy.frame(in: .named(ls.contentNameSpace))])
+							}
+						)
 						.id("PageTabControlBottomPadding")
 				
 					HPageView(alignment: .center, pageWidth: bounds.width, activePageIndex: $activePageIdx) {
@@ -386,23 +399,33 @@ struct WalletDashboardView: View {
 				Spacer()
 				ZStack {
 					Divider()
-						.opacity(dividerOpacity)
+						.opacity(aggregatedLayoutDividerOpacity)
 						.offset(y: walletDashboardViewState.tokenLayout != .aggregated ? ls.conditions.navbarTitleYOffset : 0)
 					Divider()
-						.opacity(ls.conditions.pageTabControlYOffset == .dashboardNavbarPageControlStickedOffset ? 0.8 : 0)
+						.opacity(nonAggregatedLayoutDividerOpacity)
 				}
 				.animation(.easeInOut, value: ls.conditions.navBarVisibility)
 			}
 		}
 	}
 	
-	private var dividerOpacity: CGFloat {
+	private var aggregatedLayoutDividerOpacity: CGFloat {
 		if walletDashboardViewState.tokenLayout == .aggregated && ls.conditions.navBarVisibility {
 			return 0.8
 		} else if ls.conditions.navBarVisibility {
 			return 0.8 * ls.conditions.navbarOpacity
 		} else {
 			return 0.0
+		}
+	}
+	
+	private var nonAggregatedLayoutDividerOpacity: CGFloat {
+		if walletDashboardViewState.tokenLayout == .aggregated {
+			return 0
+		} else if ls.conditions.pageNavbarContact {
+			return 0.8
+		} else {
+			return 0
 		}
 	}
 	

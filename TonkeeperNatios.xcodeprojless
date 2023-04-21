@@ -206,7 +206,7 @@
   },
   "settings": {
   "base": {
-      "PROJECT_BUNDLE_ID_PREFIX": "com.tonkeeper.tonkeeper-natios230416",
+      "PROJECT_BUNDLE_ID_PREFIX": "com.tonkeeper.tonkeeper-natios",
       "GENERATE_INFOPLIST_FILE": "YES",
       "OWNER_NAME": "TON Apps",
       "CODE_SIGN_STYLE": "Automatic",
