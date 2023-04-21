@@ -1,6 +1,35 @@
 import TonkUI
 
+
+extension SettingsView {
+	struct DebugStepper: View {
+		
+		let title: String
+		let incrementAction: () async -> ()
+		let decrementAction: () async -> ()
+		
+		var body: some View {
+			HStack {
+				Text(LocalizedStringKey(title))
+					.font(.montserrat(.title3).monospacedDigit())
+				Spacer()
+				WalletActionButton(iconName: "icon_sell") {
+					await decrementAction()
+				}
+				WalletActionButton(iconName: "icon_buy") {
+					await incrementAction()
+				}
+			}
+			.padding(.horizontal)
+		}
+		
+	}
+}
+
 struct SettingsView: View {
+	
+	
+	@EnvironmentObject private var walletDashboardViewState: WalletDashboardViewState
 	
 	var body: some View {
 		_Settings()
@@ -15,45 +44,40 @@ struct SettingsView: View {
 			HStack {
 				Spacer()
 			}
+			
 			Spacer()
-			HStack {
-				WalletActionButton(iconName: "icon_buy", actionName: "Add Fungible Token") {
+			DebugStepper(
+				title: "\(Double(walletDashboardViewState.fungibleTokens.count).stringDescription(minimumIntegerDigits: 3, fractionDigits: 0)) Fungible Tokens",
+				incrementAction: {
 					await action {
 						WalletSideEffect.addRandomFungibleToken
 					}
-				}
-				WalletActionButton(iconName: "icon_sell", actionName: "Remove Fungible Token") {
+				},
+				decrementAction: {
 					await action {
 						WalletSideEffect.deleteRandomFungibleToken
 					}
+				})
+			DebugStepper(title: "\(Double(walletDashboardViewState.nonFungibleTokens.count).stringDescription(minimumIntegerDigits: 3, fractionDigits: 0)) NonFungible Token", incrementAction: {
+				await action {
+					WalletSideEffect.addRandomNonFungibleToken
 				}
-			}
-			HStack {
-				WalletActionButton(iconName: "icon_buy", actionName: "Add NonFungible Token") {
-					await action {
-						WalletSideEffect.addRandomNonFungibleToken
-					}
+			}, decrementAction: {
+				await action {
+					WalletSideEffect.deleteRandomNonFungibleToken
 				}
-				WalletActionButton(iconName: "icon_sell", actionName: "Remove NonFungible Token") {
-					await action {
-						WalletSideEffect.deleteRandomNonFungibleToken
-					}
-				}
-			}
+			})
 			
-			HStack {
-				WalletActionButton(iconName: "icon_buy", actionName: "Add NonLiquid Asset") {
-					await action {
-						WalletSideEffect.addRandomNonLiquidAsset
-					}
+			DebugStepper(title: "\(Double(walletDashboardViewState.nonLiquidAssets.count).stringDescription(minimumIntegerDigits: 3, fractionDigits: 0)) NonLiquid Asset", incrementAction: {
+				await action {
+					WalletSideEffect.addRandomNonLiquidAsset
 				}
-				WalletActionButton(iconName: "icon_sell", actionName: "Remove NonLiquid Asset") {
-					await action {
-						WalletSideEffect.deleteRandomNonLiquidAsset
-					}
+			}, decrementAction: {
+				await action {
+					WalletSideEffect.deleteRandomNonFungibleToken
 				}
+			})
 				
-			}
 			Button(action: {
 				AppHelper.openAppSettings()
 			}) {
@@ -64,20 +88,28 @@ struct SettingsView: View {
 		}
 	}
 	
-	@ViewBuilder
-	private func WalletActionButton(iconName: String, actionName: String,  action: @escaping () async -> ()) -> some View {
-		VStack(alignment: .center, spacing: 8) {
+	
+}
+
+extension SettingsView {
+	struct WalletActionButton: View {
+		let iconName: String
+		let action: () async -> ()
+		
+		@ViewBuilder
+		var body: some View {
+			_WalletActionButton(iconName: iconName, action: action)
+		}
+		
+		@ViewBuilder
+		private func _WalletActionButton(iconName: String, action: @escaping () async -> ()) -> some View {
 			AsyncButton(action: {
 				await action()
 			} ) {
 				Image(iconName)
 			}
 			.buttonStyle(.walletAction)
-			Text(LocalizedStringKey(actionName))
-				.font(.montserrat(.callout))
-				.foregroundColor(.tonSecondaryLabel)
 		}
 	}
 }
-
 
