@@ -176,14 +176,14 @@ extension WalletDashboardView {
 		case _hybrid(Array<AssetPage>)
 		case _discrete(Array<AssetPage>)
 		
-		var asPages: Array<AssetPage> {
+		var asPages: Array<Numbered<AssetPage>> {
 			switch self {
 				case let ._aggregated(aggregatedAssetTypes):
-					return aggregatedAssetTypes
+					return aggregatedAssetTypes.numbered(startingAt: 0)
 				case let ._hybrid(aggregatedAssetTypes):
-					return aggregatedAssetTypes
+					return aggregatedAssetTypes.numbered(startingAt: 0)
 				case let ._discrete(aggregatedAssetTypes):
-					return aggregatedAssetTypes
+					return aggregatedAssetTypes.numbered(startingAt: 0)
 			}
 		}
 		
@@ -264,7 +264,6 @@ extension WalletDashboardView {
 		}
 	}
 	
-	#warning("refactor AggregatedAssetType")
 	// seems like we only need one case for aggregation
 	enum AssetPage: Equatable, Hashable, Comparable, Identifiable {
 		case page(Array<WalletAssetType>)
@@ -272,7 +271,7 @@ extension WalletDashboardView {
 		var id: String {
 			switch self {
 				case let .page(assetTypes):
-					return assetTypes.description
+					return assetTypes.sorted(by: { $0.id < $1.id }).description
 			}
 		}
 		
@@ -280,8 +279,6 @@ extension WalletDashboardView {
 			switch (lhs, rhs) {
 				case let (.page(lhsArray), .page(rhsArray)):
 					return lhsArray.lexicographicallyPrecedes(rhsArray)
-				default:
-					return false
 			}
 		}
 		

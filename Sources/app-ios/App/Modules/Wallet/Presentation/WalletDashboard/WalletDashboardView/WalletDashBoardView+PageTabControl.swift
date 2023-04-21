@@ -34,13 +34,13 @@ extension WalletDashboardView {
 		var body: some View {
 			VStack(spacing: 0) {
 				if totalTabsWidth ?? 0 < bounds.width {
-					StaticSelector(activePageIdx: $activePageIdx, assetPages: tokenLayout.asPages.numbered(startingAt: 0), animationNamespace: pageTabControl)
+					StaticSelector(activePageIdx: $activePageIdx, assetPages: tokenLayout.asPages, animationNamespace: pageTabControl)
 						.drawingGroup()
 						.onAppear {
 //							print("totalTabsWidth < bounds.width \(totalTabsWidth ?? 0 < bounds.width); \(totalTabsWidth) \(bounds.width)")
 						}
 				} else {
-					ScrollableSelector(activePageIdx: $activePageIdx, longestTabSelectorTextWidth: longestTabSelectorTextWidth, assetPages: tokenLayout.asPages.numbered(startingAt: 0), animationNamespace: pageTabControl)
+					ScrollableSelector(activePageIdx: $activePageIdx, longestTabSelectorTextWidth: longestTabSelectorTextWidth, assetPages: tokenLayout.asPages, animationNamespace: pageTabControl)
 						.onAppear {
 //							print("")
 						}

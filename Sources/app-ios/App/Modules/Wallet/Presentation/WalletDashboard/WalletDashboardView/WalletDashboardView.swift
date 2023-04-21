@@ -27,7 +27,7 @@ struct WalletDashboardView: View {
 	@State private var tallestTabSelectorTextHeight: CGFloat?
 	
 	@State var longestTabWidth: CGFloat? = 0
-	@State var tallestPageHeight: CGFloat? = 0
+	@State var tallestPageHeight: CGFloat = 0
 	@State private var pageTabSelectorYOriginCollected = false
 	
 	@State private var pageOffset: CGFloat = .zero
@@ -151,7 +151,7 @@ struct WalletDashboardView: View {
 						.id("PageTabControlBottomPadding")
 				
 					HPageView(alignment: .center, pageWidth: bounds.width, activePageIndex: $activePageIdx) {
-						ForEach(walletDashboardViewState.tokenLayout.asPages.numbered(startingAt: 0)) { aggregatedType in
+						ForEach(walletDashboardViewState.tokenLayout.asPages) { aggregatedType in
 							VStack(spacing: 0){
 								DashboardPage(
 									assetType: aggregatedType.element,
@@ -164,10 +164,8 @@ struct WalletDashboardView: View {
 							}
 						}
 					}
-					.id("DashboardPager")
-					.frame(height: tallestPageHeight) // calculate page of each side and update on idx change
+					.frame(height: tallestPageHeight + pageOffset)
 					.offset(y: pageOffset)
-					.offset(y: 0)
 					.onPreferenceChange(PageSizeKey.self, perform: { sizes in
 						guard sizes.count > 0 else {
 							return
@@ -176,7 +174,6 @@ struct WalletDashboardView: View {
 							self.tallestPageHeight = maxHeight
 						}
 					})
-					
 				}
 				.storingSize(in: ls.rectSubject, onQueue: ls.queue, space: .named(ls.contentNameSpace), logToConsole: false)
 				.onAppear {
@@ -185,7 +182,6 @@ struct WalletDashboardView: View {
 					}
 				}
 			}
-			
 		}
 		.coordinateSpace(name: ls.contentNameSpace)
 	}
