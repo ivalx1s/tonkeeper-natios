@@ -26,10 +26,10 @@ extension BottomNavigation {
                     .CombineLatest4($contentFrame, $tabbarFrame, $screenBounds, $safeAreaInsets)
                     .map { content, tabbar, screenBounds, screenInsets in
 
-                        print("content: \(content)")
-                        print("tabbar: \(tabbar)")
-                        print("screenBounds: \(screenBounds)")
-                        print("insets: \(screenInsets)")
+//                        print("content: \(content)")
+//                        print("tabbar: \(tabbar)")
+//                        print("screenBounds: \(screenBounds)")
+//                        print("insets: \(screenInsets)")
                        return  -1 * content.origin.y
                                 + screenBounds.height
                                 - tabbar.height

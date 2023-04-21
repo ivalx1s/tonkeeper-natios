@@ -10,7 +10,7 @@ extension WalletDashboardView {
 		let navbarOpacity: CGFloat
 		
 		static var `default`: Self = .init(
-			navBarVisibility: true,
+			navBarVisibility: false,
 			pageTabControlSticked: false,
 			pageTabControlYOffset: .zero,
 			navbarTitleYOffset: .zero,
@@ -80,9 +80,12 @@ extension WalletDashboardView {
 		
 		private static func checkNavBarBgVisibilityCondition(_ yOrigin: CGFloat) -> Bool {
 			switch yOrigin {
-				case ..<0: return true
-				case 0...: return false
-				default: return false
+				case ..<0:
+					return true
+				case 0...:
+					return false
+				default:
+					return false
 			}
 		}
 		

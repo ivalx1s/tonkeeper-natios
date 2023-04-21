@@ -386,14 +386,23 @@ struct WalletDashboardView: View {
 				Spacer()
 				ZStack {
 					Divider()
-						.opacity(ls.conditions.navBarVisibility ? (0.8 * ls.conditions.navbarOpacity) : 0.0)
+						.opacity(dividerOpacity)
 						.offset(y: walletDashboardViewState.tokenLayout != .aggregated ? ls.conditions.navbarTitleYOffset : 0)
-//						.offset(y: navbarDisappearingCondition ? -100 : 0)
-//						.animation(.navbarAnimation(navbarDisappearingCondition), value: navbarDisappearingCondition)
 					Divider()
 						.opacity(ls.conditions.pageTabControlYOffset == .dashboardNavbarPageControlStickedOffset ? 0.8 : 0)
 				}
+				.animation(.easeInOut, value: ls.conditions.navBarVisibility)
 			}
+		}
+	}
+	
+	private var dividerOpacity: CGFloat {
+		if walletDashboardViewState.tokenLayout == .aggregated && ls.conditions.navBarVisibility {
+			return 0.8
+		} else if ls.conditions.navBarVisibility {
+			return 0.8 * ls.conditions.navbarOpacity
+		} else {
+			return 0.0
 		}
 	}
 	
@@ -405,7 +414,7 @@ struct WalletDashboardView: View {
 				Image("icon_qrscanner")
 					.resizable()
 					.frame(width: 22, height: 22)
-					.opacity(ls.conditions.navbarOpacity)
+					.opacity(walletDashboardViewState.tokenLayout != .aggregated ? ls.conditions.navbarOpacity : 1.0)
 			}
 			.padding(.trailing, 21)
 		}
@@ -419,7 +428,7 @@ struct WalletDashboardView: View {
 		Text("Wallet")
 			.font(.montserrat(.title2))
 			.fontWeight(.bold)
-			.opacity(ls.conditions.navbarOpacity)
+			.opacity(walletDashboardViewState.tokenLayout != .aggregated ? ls.conditions.navbarOpacity : 1.0)
 			.extendingContent(.horizontal)
 		     // due to a bug in swiftui,
 		     // without explicit frame text breaks
