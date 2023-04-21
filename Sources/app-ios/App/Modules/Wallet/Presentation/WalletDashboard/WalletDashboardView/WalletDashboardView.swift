@@ -319,6 +319,11 @@ struct WalletDashboardView: View {
 						isLast: tuple.number == lastElementIdx
 					)
 					.id(tuple.id)
+					.onAppear {
+						if lastElementIdx == tuple.number {
+							print("lastAppeared")
+						}
+					}
 					// debug view rerenders
 //					.overlay(
 //						Text("\(Int.random(in: 1...1000))")
@@ -408,16 +413,13 @@ struct WalletDashboardView: View {
 					Divider()
 						.opacity(ls.conditions.navBarVisibility ? 0.8 : 0.1)
 						.offset(y: walletDashboardViewState.tokenLayout != .aggregated ? ls.conditions.navbarTitleYOffset : 0)
-						.offset(y: ls.conditions.pageTabControlSticked ? -100 : 0)
-						.animation(.navbarAnimation(ls.conditions.pageTabControlSticked), value: ls.conditions.pageTabControlSticked)
+						.offset(y: navbarDisappearingCondition ? -100 : 0)
+						.animation(.navbarAnimation(navbarDisappearingCondition), value: navbarDisappearingCondition)
 					Divider()
 						.opacity(ls.conditions.pageTabControlYOffset == .dashboardNavbarPageControlStickedOffset ? 0.8 : 0)
 				}
 			}
 		}
-//		.opacity(ls.navBarBgVisible ? 1 :)
-			//.animation(.linear, value: ls.navBarBgOpacity)
-			//.animation(.linear(duration: 0.15), value: ls.navBarBgOpacity)
 	}
 	
 	@ViewBuilder
@@ -432,8 +434,8 @@ struct WalletDashboardView: View {
 			.padding(.trailing, 21)
 		}
 		.offset(y: walletDashboardViewState.tokenLayout != .aggregated ? ls.conditions.navbarTitleYOffset : .zero)
-		.offset(y: ls.conditions.pageTabControlSticked ? -100 : 0)
-		.animation(.navbarAnimation(ls.conditions.pageTabControlSticked), value: ls.conditions.pageTabControlSticked)
+		.offset(y: navbarDisappearingCondition ? -100 : 0)
+		.animation(.navbarAnimation(navbarDisappearingCondition), value: navbarDisappearingCondition)
 	}
 	
 	@ViewBuilder
@@ -446,8 +448,15 @@ struct WalletDashboardView: View {
 		     // without explicit frame text breaks
 		     // y-origin of a scroll view inner coordinate space
 			.frame(height: ls.navbarHeight)
-			.offset(y: ls.conditions.pageTabControlSticked ? -100 : 0)
+			.offset(y: navbarDisappearingCondition ? -100 : 0)
 			.animation(.navbarAnimation(ls.conditions.pageTabControlSticked), value: ls.conditions.pageTabControlSticked)
+	}
+	
+	private var navbarDisappearingCondition: Bool {
+		if walletDashboardViewState.tokenLayout != .aggregated {
+			return ls.conditions.pageTabControlSticked
+		}
+		return false
 	}
 
 	
