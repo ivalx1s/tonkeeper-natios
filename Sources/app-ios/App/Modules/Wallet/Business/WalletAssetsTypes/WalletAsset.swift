@@ -5,6 +5,7 @@ protocol WalletAsset: Sendable, Identifiable, Equatable, Codable, Hashable {
 	var balance: BaseUnit { get }
 }
 
+
 struct BaseUnit: Sendable, Equatable, Codable, Hashable, Comparable {
 	
 	let amount: UInt

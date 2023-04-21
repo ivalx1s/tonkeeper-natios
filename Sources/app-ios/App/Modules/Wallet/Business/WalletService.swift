@@ -106,6 +106,7 @@ final class WalletService: IWalletService {
 		await walletAssetsBuffer.append(contentsOf: nonLiquidAsset)
 		await walletAssetsBuffer.append(contentsOf: fungibleTokens)
 		await walletAssetsBuffer.append(contentsOf: nftAssets)
+		await walletAssetsBuffer.setAssets(await walletAssetsBuffer.assets.unique(by: \.assetId))
 	}
 	
 	func deleteRandomAsset(of assetType: WalletAssetType) async {
