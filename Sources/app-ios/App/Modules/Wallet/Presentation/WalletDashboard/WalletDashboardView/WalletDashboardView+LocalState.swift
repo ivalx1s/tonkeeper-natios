@@ -90,7 +90,7 @@ extension WalletDashboardView {
 			if yOrigin < (-1*Self.pageTabControlInitialYOrigin) {
 				let offset = yOrigin + Self.pageTabControlInitialYOrigin
 				
-				return max(offset, -200)
+				return max(offset*2, -200)
 			} else {
 				return .zero
 			}
