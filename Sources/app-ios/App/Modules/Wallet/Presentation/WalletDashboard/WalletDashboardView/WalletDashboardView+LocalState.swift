@@ -71,10 +71,8 @@ extension WalletDashboardView {
 		
 		private static func checkNavbarOpacityCondition(_ yOrigin: CGFloat) -> CGFloat {
 			switch yOrigin {
-				case ...(-213):
-					let opacity = 1/abs(yOrigin)
-					print("yOrigin: \(yOrigin), opacity: \(opacity)")
-					return 1
+				case ...(-Self.pageTabControlInitialYOrigin):
+					return calculateOpacity(initialYOrigin: Self.pageTabControlInitialYOrigin, currentYOrigin: yOrigin)
 				default:
 					return 1
 			}
@@ -101,7 +99,7 @@ extension WalletDashboardView {
 		private static func checkPageTabControlStickedCondition(_ yOrigin: CGFloat) -> Bool {
 			guard yOrigin < 0 else { return false }
 			let shouldBeSticked = yOrigin <= (-1*Self.pageTabControlInitialYOrigin)
-			return yOrigin <= (-1*Self.pageTabControlInitialYOrigin)
+			return shouldBeSticked
 		}
 		
 		private static func checkNavbarTitleYOffsetCondition(_ yOrigin: CGFloat) -> CGFloat {
@@ -118,6 +116,13 @@ extension WalletDashboardView {
 		static private func roundToPrecision(_ value: CGFloat, precision: Int) -> CGFloat {
 			let multiplier = pow(10, CGFloat(precision))
 			return round(value * multiplier) / multiplier
+		}
+		
+		static private func calculateOpacity(initialYOrigin: CGFloat, currentYOrigin: CGFloat) -> CGFloat {
+			let yDiff = -initialYOrigin - currentYOrigin
+			let opacityChangePerPoint = 1.0 / 60.0
+			let opacity = max(1 - (yDiff * opacityChangePerPoint), 0)
+			return opacity
 		}
 	}
 	

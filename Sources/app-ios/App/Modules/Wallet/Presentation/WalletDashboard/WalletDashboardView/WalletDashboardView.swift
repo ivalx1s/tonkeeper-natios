@@ -390,7 +390,7 @@ struct WalletDashboardView: View {
 				Spacer()
 				ZStack {
 					Divider()
-						.opacity(ls.conditions.navBarVisibility ? 0.8 : 0.1)
+						.opacity(ls.conditions.navBarVisibility ? (0.8 * ls.conditions.navbarOpacity) : 0.0)
 						.offset(y: walletDashboardViewState.tokenLayout != .aggregated ? ls.conditions.navbarTitleYOffset : 0)
 //						.offset(y: navbarDisappearingCondition ? -100 : 0)
 //						.animation(.navbarAnimation(navbarDisappearingCondition), value: navbarDisappearingCondition)
@@ -409,6 +409,7 @@ struct WalletDashboardView: View {
 				Image("icon_qrscanner")
 					.resizable()
 					.frame(width: 22, height: 22)
+					.opacity(ls.conditions.navbarOpacity)
 			}
 			.padding(.trailing, 21)
 		}
@@ -422,6 +423,7 @@ struct WalletDashboardView: View {
 		Text("Wallet")
 			.font(.montserrat(.title2))
 			.fontWeight(.bold)
+			.opacity(ls.conditions.navbarOpacity)
 			.extendingContent(.horizontal)
 		     // due to a bug in swiftui,
 		     // without explicit frame text breaks
