@@ -114,7 +114,7 @@
     },
         "remote-swift-stdlibplus": {
       "url": "git@github.com:ivalx1s/swift-stdlibplus.git",
-      "version": "0.8.0"
+      "version": "0.9.0"
     },
         "remote-tonkui-ios": {
             "url": "git@github.com:ivalx1s/tonkui-ios.git",
