@@ -118,7 +118,7 @@
     },
         "remote-tonkui-ios": {
             "url": "git@github.com:ivalx1s/tonkui-ios.git",
-            "version": "0.3.2"
+            "version": "0.3.3"
         },
         "remote-Swinject": {
       "version": "2.8.1",
