@@ -2,7 +2,7 @@ import TonkUI
 import Combine
 
 extension BottomNavigation {
-	enum BgType {
+	enum BgType: Equatable {
 		case clear
 		case color(Color)
 		case systemMaterial
@@ -11,6 +11,7 @@ extension BottomNavigation {
 
 extension BottomNavigation {
     class LocalState: ObservableObject {
+		private var pipelines: Set<AnyCancellable> = []
 		@Published var bgType: BgType = .color(.tonSystemBackground)
         @Published var tabbarFrame: CGRect = .zero
         @Published var contentFrame: CGRect = .zero
@@ -30,7 +31,8 @@ extension BottomNavigation {
 //                        print("tabbar: \(tabbar)")
 //                        print("screenBounds: \(screenBounds)")
 //                        print("insets: \(screenInsets)")
-                       return  -1 * content.origin.y
+						
+						return -1 * content.origin.y
                                 + screenBounds.height
                                 - tabbar.height
                                 - screenInsets.top - screenInsets.bottom
@@ -39,6 +41,12 @@ extension BottomNavigation {
                                 : .clear
                     }
                     .assign(to: &$bgType)
+			
+			$bgType
+				.sink { _ in
+					print("")
+				}
+				.store(in: &pipelines)
         }
     }
 }
