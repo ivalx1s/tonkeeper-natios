@@ -9,6 +9,7 @@ struct WalletDashboardView: View {
 	@Environment(\.bounds) private var bounds
 	@Environment(\.locale) private var locale
 	@Namespace private var pageControl
+	@Namespace private var page
 
 	let props: Props
 	let actions: Actions
@@ -111,17 +112,23 @@ struct WalletDashboardView: View {
 				guard ls.conditions.pageTabControlSticked else { return }
 				delay(for: 0.2) {
 					withAnimation(.easeInOut(duration: 0.3)) {
-						scrollProxy?.scrollTo("PageTabControlBottomPadding", anchor: .top)
+					//	scrollProxy?.scrollTo("PageTabControlBottomPadding", anchor: .top)
 					}
 				}
 			}
 	}
 	
-	
+//	private var scrollViewAxes: Axis.Set {
+//		if ls.conditions.pageNavbarContact {
+//			return []
+//		} else {
+//			return .vertical
+//		}
+//	}
 	
 	@ViewBuilder
 	private func Content() -> some View {
-		ScrollView([.vertical], showsIndicators: false) {
+		ScrollView(.vertical, showsIndicators: false) {
 			ScrollViewReader { proxy in
 				VStack(spacing: 0) {
 					// only used to read coordinates of scroll view's first element
@@ -163,22 +170,17 @@ struct WalletDashboardView: View {
 						)
 						.id("PageTabControlBottomPadding")
 				
-					HPageView(alignment: .center, pageWidth: bounds.width, activePageIndex: $activePageIdx) {
-						ForEach(walletDashboardViewState.tokenLayout.asPages) { aggregatedType in
-							VStack(spacing: 0){
-								DashboardPage(
-									assetType: aggregatedType.element,
-									fungibleTokens: walletDashboardViewState.fungibleTokens,
-									nonFungibleTokens: walletDashboardViewState.nonFungibleTokens,
-									nonLiquidAsset: walletDashboardViewState.nonLiquidAssets,
-									pageIdx: aggregatedType.number
-								)
-								Spacer()
+					Color.clear
+						.frame(height: tallestPageHeight + pageOffset)
+						.overlay(
+							VStack(spacing: 0) {
+								SmartPager()
+								Spacer(minLength: 0)
 							}
-						}
-					}
-					.frame(height: tallestPageHeight + pageOffset)
-					.offset(y: pageOffset)
+						)
+					
+					
+						//.offset(y: pageOffset)
 					.onPreferenceChange(PageSizeKey.self, perform: { sizes in
 						guard sizes.count > 0 else {
 							return
@@ -197,6 +199,49 @@ struct WalletDashboardView: View {
 			}
 		}
 		.coordinateSpace(name: ls.contentNameSpace)
+	}
+	
+	@ViewBuilder
+	private func SmartPager() -> some View {
+		if ls.conditions.pageNavbarContact {
+			TabView {
+				ForEach(walletDashboardViewState.tokenLayout.asPages) { aggregatedType in
+					ScrollView([]) {
+						VStack(spacing: 0) {
+							DashboardPage(
+								assetType: aggregatedType.element,
+								fungibleTokens: walletDashboardViewState.fungibleTokens,
+								nonFungibleTokens: walletDashboardViewState.nonFungibleTokens,
+								nonLiquidAsset: walletDashboardViewState.nonLiquidAssets,
+								pageIdx: aggregatedType.number
+							)
+							.matchedGeometryEffect(id: aggregatedType.id, in: page)
+						}
+						.border(.red)
+					}
+				}
+			}
+			.tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
+			.frame(height: bounds.height - 150)
+			.border(.green)
+		} else {
+			HPageView(alignment: .center, pageWidth: bounds.width, activePageIndex: $activePageIdx) {
+				ForEach(walletDashboardViewState.tokenLayout.asPages) { aggregatedType in
+					VStack(spacing: 0) {
+						DashboardPage(
+							assetType: aggregatedType.element,
+							fungibleTokens: walletDashboardViewState.fungibleTokens,
+							nonFungibleTokens: walletDashboardViewState.nonFungibleTokens,
+							nonLiquidAsset: walletDashboardViewState.nonLiquidAssets,
+							pageIdx: aggregatedType.number
+						)
+						.matchedGeometryEffect(id: aggregatedType.id, in: page)
+						Spacer()
+					}
+				}
+			}
+			.frame(height: tallestPageHeight + pageOffset)
+		}
 	}
 	
 	@ViewBuilder
@@ -265,7 +310,7 @@ struct WalletDashboardView: View {
 	) -> some View {
 		switch assetType {
 			case let .page(walletAssetTypes):
-				VStack(spacing: 32) {
+				LazyVStack(spacing: 32) {
 					ForEach(walletAssetTypes) { type in
 						switch type {
 							case .fungibleToken:
