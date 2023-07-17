@@ -199,7 +199,7 @@
     },
     "versioningSettings": {
       "MARKETING_VERSION": "0.1.0",
-      "CURRENT_PROJECT_VERSION": "7"
+      "CURRENT_PROJECT_VERSION": "8"
     },
     "baseSettings": {
     }
@@ -210,7 +210,7 @@
       "GENERATE_INFOPLIST_FILE": "YES",
       "OWNER_NAME": "TON Apps",
       "CODE_SIGN_STYLE": "Automatic",
-      "DEVELOPMENT_TEAM": "V8V53456PB"
+      "DEVELOPMENT_TEAM": "XXXXXXXXXX"
     }
   },
   "targets": {
